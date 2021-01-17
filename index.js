@@ -4,9 +4,9 @@
 // + 2. Розмір текстових файлів не менше 150 К.
 // + 3. Кількість текстових файлів не менше 10.
 // + 4. Словник термінів зберегти на диск.
-// 5. Оцінити розмір колекції, загальну кількість слів в колекції та розмір словника.
-// 6. Обгрунтувати структуру даних
-// 7. Зробити оцінку складності алгоритму
+// + 5. Оцінити розмір колекції, загальну кількість слів в колекції та розмір словника.
+// + 6. Обгрунтувати структуру даних
+// + 7. Зробити оцінку складності алгоритму
 // 8. Випробувати декілька форматів збереження словника(серіалізація словника, збереження в текстовий файл і т.д.) і порівняти результати.
 
 const fs = require('fs');
@@ -16,16 +16,18 @@ const union = sets => sets.reduce((combined, list) => new Set([...combined, ...l
 
 const filenames = [
   "Война и мир. Том 1",
-  // "Война и мир. Том 2",
-  // "Война и мир. Том 3",
-  // "Война и мир. Том 4",
-  // "Мастер и Маргарита",
-  // "Волшебник Изумрудного города",
-  // "Братья Карамазовы",
-  // "Идиот",
-  // "Униженные и оскорбленные",
-  // "Бесы",
+  "Война и мир. Том 2",
+  "Война и мир. Том 3",
+  "Война и мир. Том 4",
+  "Мастер и Маргарита",
+  "Волшебник Изумрудного города",
+  "Братья Карамазовы",
+  "Идиот",
+  "Униженные и оскорбленные",
+  "Бесы",
 ];
+
+const start = Date.now();
 
 const dicts = [];
 for (let i = 0; i < filenames.length; i++) {
@@ -45,6 +47,19 @@ for (let i = 0; i < filenames.length; i++) {
 
 const dict = union(dicts);
 console.log(`The size of the dictionary is ${dict.size} words`);
-// console.log([...new Set([1, 2, 3]).values()].join('\n'))
 
 fs.writeFileSync(path.join(__dirname, 'output', 'dictionary.txt'), [...dict.values()].join('\n'));
+
+/**
+ * Statistics
+ */
+console.log(`The program working time is ${(Date.now() - start) / 1000}s`)
+
+let totalFilesSize = 0;
+for (let i = 0; i < filenames.length; i++) {
+  totalFilesSize += fs.statSync(path.join(__dirname, 'input', `${filenames[i]}.txt`)).size;
+}
+
+const sizeInBytes = fs.statSync(path.join(__dirname, 'output', 'dictionary.txt')).size;
+console.log(`The total size of all input files is ${totalFilesSize / 1e6} MB`);
+console.log(`The dictionary size is ${sizeInBytes / 1e6} MB`);
