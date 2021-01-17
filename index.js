@@ -7,12 +7,13 @@
 // + 5. Оцінити розмір колекції, загальну кількість слів в колекції та розмір словника.
 // + 6. Обгрунтувати структуру даних
 // + 7. Зробити оцінку складності алгоритму
-// 8. Випробувати декілька форматів збереження словника(серіалізація словника, збереження в текстовий файл і т.д.) і порівняти результати.
+// +8. Випробувати декілька форматів збереження словника(серіалізація словника, збереження в текстовий файл і т.д.) і порівняти результати.
 
 const fs = require('fs');
 const path = require('path');
 
 const union = sets => sets.reduce((combined, list) => new Set([...combined, ...list]), new Set());
+// const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 const filenames = [
   "Война и мир. Том 1",
@@ -26,6 +27,8 @@ const filenames = [
   "Униженные и оскорбленные",
   "Бесы",
 ];
+
+const outputPath = path.join(__dirname, 'output', 'dictionary.txt');
 
 const start = Date.now();
 
@@ -48,7 +51,9 @@ for (let i = 0; i < filenames.length; i++) {
 const dict = union(dicts);
 console.log(`The size of the dictionary is ${dict.size} words`);
 
-fs.writeFileSync(path.join(__dirname, 'output', 'dictionary.txt'), [...dict.values()].join('\n'));
+// fs.writeFileSync(outputPath, [...dict.values()].join('\n'));
+// fs.writeFileSync(outputPath, JSON.stringify([...dict.values()].reduce((acc, x, i) => { acc[i] = x; return acc; }, {})));
+fs.writeFileSync(outputPath, [...dict.values()].join(','));
 
 /**
  * Statistics
@@ -60,6 +65,6 @@ for (let i = 0; i < filenames.length; i++) {
   totalFilesSize += fs.statSync(path.join(__dirname, 'input', `${filenames[i]}.txt`)).size;
 }
 
-const sizeInBytes = fs.statSync(path.join(__dirname, 'output', 'dictionary.txt')).size;
+const sizeInBytes = fs.statSync(outputPath).size;
 console.log(`The total size of all input files is ${totalFilesSize / 1e6} MB`);
 console.log(`The dictionary size is ${sizeInBytes / 1e6} MB`);
