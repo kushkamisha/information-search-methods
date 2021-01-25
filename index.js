@@ -1,85 +1,51 @@
-// Написати програму, що по заданій колекції текстових файлів будує словник термінів.
-
-// + 1. Текстові файли подаються на вхід в будь - якому форматі.
-// + 2. Розмір текстових файлів не менше 150 К.
-// + 3. Кількість текстових файлів не менше 10.
-// + 4. Словник термінів зберегти на диск.
-// + 5. Оцінити розмір колекції, загальну кількість слів в колекції та розмір словника.
-// + 6. Обгрунтувати структуру даних
-// + 7. Зробити оцінку складності алгоритму
-// + 8. Випробувати декілька форматів збереження словника(серіалізація словника, збереження в текстовий файл і т.д.) і порівняти результати.
-
+const { rejects } = require('assert');
 const fs = require('fs');
 const path = require('path');
-const WordExtractor = require('word-extractor');
-const extractor = new WordExtractor();
 
 const union = sets => sets.reduce((combined, list) => new Set([...combined, ...list]), new Set());
-const readDoc = filePath => new Promise(resolve => extractor.extract(filePath).then((doc) => resolve(doc.getBody())));
-const read = async filename => {
-  const fileExtension = filename.split('.')[1];
-  switch (fileExtension) {
-    case 'doc':
-      return await readDoc(path.join(__dirname, 'input', filename));
-    default:
-      return fs.readFileSync(path.join(__dirname, 'input', filename), 'utf8');
-  }
-}
+const read = async filename => new Promise((resolve, reject) =>
+  fs.readFile(path.join(__dirname, 'input', filename), 'utf-8', (err, data) => {
+    if (err) reject(err);
+    else resolve(data);
+  }));
 
-const createDict = async () => {
-  const filenames = [
-    "Война и мир. Том 1.txt",
-    "Война и мир. Том 2.txt",
-    "Война и мир. Том 3.txt",
-    "Война и мир. Том 4.txt",
-    "Мастер и Маргарита.txt",
-    "Волшебник Изумрудного города.txt",
-    "Братья Карамазовы.txt",
-    "Идиот.txt",
-    "Униженные и оскорбленные.txt",
-    "Бесы.doc",
-  ];
+const createDict = async filenames => {
+  const texts = await Promise.all(filenames.map(filename => read(filename)));
+  const set = new Set();
 
-  const outputPath = path.join(__dirname, 'output', 'dictionary.txt');
-
-  const start = Date.now();
-
-  const dicts = [];
-  for (let i = 0; i < filenames.length; i++) {
-    const data = await read(filenames[i]);
-    dicts.push(
-      new Set(
-        data
-          .replaceAll('\n', ' ')
-          // .replaceAll(/[^a-zA-Z ]+/g, '')
-          .replaceAll(/[^а-яА-Я ]+/g, '')
-          .split(' ')
-          .filter(x => x)
-          .map(x => x.toLowerCase())
-      )
-    );
+  for (let i = 0; i < texts.length; i++) {
+    const arr = texts[i].replaceAll('\n', ' ')
+      // .replaceAll(/[^a-zA-Z ]+/g, '')
+      .replaceAll(/[^а-яА-Я ]+/g, '')
+      .split(' ');
+    for (let j = 0; j < arr.length; j++) {
+      if (!!arr[j]) set.add(arr[j].toLowerCase());
+    }
   }
 
-  const dict = union(dicts);
-  console.log(`The size of the dictionary is ${dict.size} words`);
-
-  // fs.writeFileSync(outputPath, [...dict.values()].join('\n'));
-  // fs.writeFileSync(outputPath, JSON.stringify([...dict.values()].reduce((acc, x, i) => { acc[i] = x; return acc; }, {})));
-  fs.writeFileSync(outputPath, [...dict.values()].join(','));
-
-  /**
-   * Statistics
-   */
-  console.log(`The program working time is ${(Date.now() - start) / 1000}s`)
-
-  let totalFilesSize = 0;
-  for (let i = 0; i < filenames.length; i++) {
-    totalFilesSize += fs.statSync(path.join(__dirname, 'input', filenames[i])).size;
-  }
-
-  const sizeInBytes = fs.statSync(outputPath).size;
-  console.log(`The total size of all input files is ${totalFilesSize / 1e6} MB`);
-  console.log(`The dictionary size is ${sizeInBytes / 1e6} MB`);
+  return set;
 };
 
-createDict();
+const filenames = [
+  "Война и мир. Том 1.txt",
+  "Война и мир. Том 2.txt",
+  "Война и мир. Том 3.txt",
+  "Война и мир. Том 4.txt",
+  "Мастер и Маргарита.txt",
+  "Волшебник Изумрудного города.txt",
+  "Братья Карамазовы.txt",
+  "Идиот.txt",
+  "Униженные и оскорбленные.txt",
+  "Бесы.doc",
+];
+
+const main = async () => {
+  const start = Date.now();
+  const dict = await createDict(filenames);
+  // console.log([...dict.keys()].slice(10));
+  console.log(dict.size);
+
+  console.log(Date.now() - start);
+}
+
+main();
