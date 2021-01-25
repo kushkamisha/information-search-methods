@@ -2,7 +2,6 @@ const { rejects } = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const union = sets => sets.reduce((combined, list) => new Set([...combined, ...list]), new Set());
 const read = async filename => new Promise((resolve, reject) =>
   fs.readFile(path.join(__dirname, 'input', filename), 'utf-8', (err, data) => {
     if (err) reject(err);
@@ -21,11 +20,10 @@ const createInsidenceMatrix = async filenames => {
     for (let j = 0; j < arr.length; j++) {
       const word = arr[j].toLowerCase();
       if (!!arr[j]) {
-        if (words.has(word)) {
-          words.get(word).add(filenames[i]);
-        } else {
-          words.set(word, new Set());
+        if (!words.has(word)) {
+          words.set(word, new Array(filenames.length).fill(0));
         }
+        words.get(word)[i] = 1;
       }
     }
   }
@@ -51,7 +49,7 @@ const main = async () => {
   const dict = await createInsidenceMatrix(filenames);
   // console.log([...dict.keys()].slice(0, 10));
   console.log(dict.size);
-  // console.log(dict);
+  console.log(dict);
   // console.log(dict.get('ваш'))
 
   console.log(`Working time: ${Date.now() - start} ms`);
