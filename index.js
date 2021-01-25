@@ -9,9 +9,9 @@ const read = async filename => new Promise((resolve, reject) =>
     else resolve(data);
   }));
 
-const createDict = async filenames => {
+const createInsidenceMatrix = async filenames => {
   const texts = await Promise.all(filenames.map(filename => read(filename)));
-  const set = new Set();
+  const words = new Map();
 
   for (let i = 0; i < texts.length; i++) {
     const arr = texts[i].replaceAll('\n', ' ')
@@ -19,11 +19,18 @@ const createDict = async filenames => {
       .replaceAll(/[^а-яА-Я ]+/g, '')
       .split(' ');
     for (let j = 0; j < arr.length; j++) {
-      if (!!arr[j]) set.add(arr[j].toLowerCase());
+      const word = arr[j].toLowerCase();
+      if (!!arr[j]) {
+        if (words.has(word)) {
+          words.get(word).add(filenames[i]);
+        } else {
+          words.set(word, new Set());
+        }
+      }
     }
   }
 
-  return set;
+  return words;
 };
 
 const filenames = [
@@ -36,16 +43,18 @@ const filenames = [
   "Братья Карамазовы.txt",
   "Идиот.txt",
   "Униженные и оскорбленные.txt",
-  "Бесы.doc",
+  "Бесы.txt",
 ];
 
 const main = async () => {
   const start = Date.now();
-  const dict = await createDict(filenames);
-  // console.log([...dict.keys()].slice(10));
+  const dict = await createInsidenceMatrix(filenames);
+  // console.log([...dict.keys()].slice(0, 10));
   console.log(dict.size);
+  // console.log(dict);
+  // console.log(dict.get('ваш'))
 
-  console.log(Date.now() - start);
+  console.log(`Working time: ${Date.now() - start} ms`);
 }
 
 main();
