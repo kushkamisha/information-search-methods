@@ -31,6 +31,29 @@ const createInsidenceMatrix = async filenames => {
   return words;
 };
 
+const createInvertedIndex = async filenames => {
+  const texts = await Promise.all(filenames.map(filename => read(filename)));
+  const words = new Map();
+
+  for (let i = 0; i < texts.length; i++) {
+    const arr = texts[i].replaceAll('\n', ' ')
+      // .replaceAll(/[^a-zA-Z ]+/g, '')
+      .replaceAll(/[^а-яА-Я ]+/g, '')
+      .split(' ');
+    for (let j = 0; j < arr.length; j++) {
+      const word = arr[j].toLowerCase();
+      if (!!arr[j]) {
+        if (!words.has(word)) {
+          words.set(word, new Set());
+        }
+        words.get(word).add(i);
+      }
+    }
+  }
+
+  return words;
+};
+
 const filenames = [
   "Война и мир. Том 1.txt",
   "Война и мир. Том 2.txt",
@@ -46,11 +69,15 @@ const filenames = [
 
 const main = async () => {
   const start = Date.now();
-  const dict = await createInsidenceMatrix(filenames);
+  const dict1 = await createInsidenceMatrix(filenames);
+  const dict2 = await createInvertedIndex(filenames);
   // console.log([...dict.keys()].slice(0, 10));
-  console.log(dict.size);
-  console.log(dict);
-  // console.log(dict.get('ваш'))
+  console.log(dict1.size);
+  console.log(dict2.size);
+  // console.log(dict1.get('императрице'));
+  // console.log(dict2.get('императрице'));
+  console.log(dict1.get('императрице').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
+  console.log([...dict2.get('императрице').values()].map(x => filenames[x]));
 
   console.log(`Working time: ${Date.now() - start} ms`);
 }
