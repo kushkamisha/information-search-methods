@@ -54,6 +54,37 @@ const createInvertedIndex = async filenames => {
   return words;
 };
 
+// cosnt processInsidenceMatrix = (query, mtr) => {
+// }
+
+function processOR(query, mtr) {
+  const words = query.split('or').map(x => x.trim());
+  const entries = words.reduce((acc, w) => { acc.push(...mtr.get(w)); return acc; }, []);
+  return [...new Set(entries).values()];
+}
+
+function processAND(query, mtr) {
+  const [word1, word2] = query.split('and').map(x => x.trim());
+  const occur1 = [...mtr.get(word1)];
+  const occur2 = [...mtr.get(word2)];
+  return occur1.filter(x => occur2.includes(x));
+}
+
+function processNOT(query, mtr, filesIDs) {
+  const word = query.split('not')[1].trim();
+  const occur = mtr.get(word);
+  const ids = new Array(filesIDs).fill().map((_, i) => i);
+  if (!occur) return [];
+  return ids.filter(x => ![...occur].includes(x));
+}
+
+const processAtomicQuery = (query, mtr, filesIDs) => {
+  query = query.toLowerCase();
+  if (query.indexOf('or') != -1) return processOR(query, mtr);
+  else if (query.indexOf('and') != -1) return processAND(query, mtr);
+  else if (query.indexOf('not') != -1) return processNOT(query, mtr, filesIDs);
+}
+
 const filenames = [
   "Война и мир. Том 1.txt",
   "Война и мир. Том 2.txt",
@@ -69,15 +100,18 @@ const filenames = [
 
 const main = async () => {
   const start = Date.now();
-  const dict1 = await createInsidenceMatrix(filenames);
+  // const dict1 = await createInsidenceMatrix(filenames);
   const dict2 = await createInvertedIndex(filenames);
   // console.log([...dict.keys()].slice(0, 10));
-  console.log(dict1.size);
-  console.log(dict2.size);
-  // console.log(dict1.get('императрице'));
-  // console.log(dict2.get('императрице'));
-  console.log(dict1.get('императрице').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
-  console.log([...dict2.get('императрице').values()].map(x => filenames[x]));
+  // console.log(dict1.size);
+  // console.log(dict2.size);
+  // console.log(dict1.get('императрица').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
+  // console.log(dict1.get('бояре').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
+  // console.log([...dict2.get('императрица')].map(x => filenames[x]));
+  // console.log([...dict2.get('бояре')].map(x => filenames[x]));
+  console.log([...dict2.get('княгиня')].map(x => filenames[x]));
+
+  console.log(processAtomicQuery('NOT княгиня', dict2, filenames.length).map(x => filenames[x]));
 
   console.log(`Working time: ${Date.now() - start} ms`);
 }
