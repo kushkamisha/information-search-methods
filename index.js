@@ -132,7 +132,8 @@ const main = async () => {
 
   console.log(dict1.size);
   console.log(dict2.size);
-  console.log(dict1.values().next().value);
+  console.log(`Dict1 size is ${[...dict1.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
+  console.log(`Dict2 size is ${[...dict2.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
 
   // console.log(dict1.get('императрица').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
   // console.log(dict1.get('бояре').map((x, i) => x !== 0 ? filenames[i] : undefined).filter(x => x));
