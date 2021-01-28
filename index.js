@@ -130,8 +130,6 @@ const main = async () => {
   const dict1 = await createInsidenceMatrix(filenames);
   const dict2 = await createInvertedIndex(filenames);
 
-  console.log(dict1.size);
-  console.log(dict2.size);
   console.log(`Dict1 size is ${[...dict1.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
   console.log(`Dict2 size is ${[...dict2.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
 
