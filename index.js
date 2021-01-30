@@ -3,10 +3,8 @@
 // 2. і координатний інвертований індекс по колекції документів.
 // 3. Реалізувати фразовий пошук
 // 4. та пошук з урахуванням відстані для кожного з них.
-
-const fs = require('fs');
-const path = require('path');
 const { processAND, processOR, processNOT } = require('./boolOperators');
+const { createInvertedIndex } = require('./indexes');
 
 const filenames = [
   "Война и мир. Том 1.txt",
@@ -20,34 +18,6 @@ const filenames = [
   "Униженные и оскорбленные.txt",
   "Бесы.txt",
 ];
-
-const read = filename =>
-  new Promise((resolve, reject) =>
-    fs.readFile(path.join(__dirname, 'input', filename), 'utf-8', (err, data) =>
-      err ? reject(err) : resolve(data)));
-
-async function createInvertedIndex(filenames) {
-  const texts = await Promise.all(filenames.map(filename => read(filename)));
-  const words = new Map();
-
-  for (let i = 0; i < texts.length; i++) {
-    const arr = texts[i].replaceAll('\n', ' ')
-      // .replaceAll(/[^a-zA-Z ]+/g, '')
-      .replaceAll(/[^а-яА-Я ]+/g, '')
-      .split(' ');
-    for (let j = 0; j < arr.length; j++) {
-      const word = arr[j].toLowerCase();
-      if (!!arr[j]) {
-        if (!words.has(word)) {
-          words.set(word, new Set());
-        }
-        words.get(word).add(i);
-      }
-    }
-  }
-
-  return words;
-};
 
 function processAtomicQuery(query, mtr, filesIDs) {
   query = query.toLowerCase();
