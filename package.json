@@ -1,6 +1,6 @@
 {
-  "name": "1-dictionary",
-  "version": "1.0.0",
+  "name": "IS-assignments",
+  "version": "1.1.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,5 +20,5 @@
     "word-extractor": "^0.3.0"
   },
   "devDependencies": {},
-  "description": ""
+  "description": "Information Search Methods Programming Assignments"
 }
