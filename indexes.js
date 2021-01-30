@@ -1,28 +1,52 @@
-const { read } = require('./utils');
+function splitIntoWords(data) {
+  const words = data.replaceAll('\n', ' ')
+    // .replaceAll(/[^a-zA-Z ]+/g, '')
+    .replaceAll(/[^а-яА-Я ]+/g, '')
+    .split(' ');
 
-async function createInvertedIndex(filenames) {
-  const texts = await Promise.all(filenames.map(filename => read(filename)));
-  const words = new Map();
+  const processed = [];
+  for (let i = 0; i < words.length; i++) {
+    if (!!words[i]) {
+      processed.push(words[i].toLowerCase());
+    }
+  }
+  return processed;
+}
 
-  for (let i = 0; i < texts.length; i++) {
-    const arr = texts[i].replaceAll('\n', ' ')
-      // .replaceAll(/[^a-zA-Z ]+/g, '')
-      .replaceAll(/[^а-яА-Я ]+/g, '')
-      .split(' ');
-    for (let j = 0; j < arr.length; j++) {
-      const word = arr[j].toLowerCase();
-      if (!!arr[j]) {
-        if (!words.has(word)) {
-          words.set(word, new Set());
-        }
-        words.get(word).add(i);
+function createInvertedIndex(data) {
+  const wordMap = new Map();
+
+  for (let i = 0; i < data.length; i++) {
+    const words = splitIntoWords(data[i]);
+    for (let j = 0; j < words.length; j++) {
+      if (!wordMap.has(words[j])) {
+        wordMap.set(words[j], new Set());
       }
+      wordMap.get(words[j]).add(i);
     }
   }
 
-  return words;
+  return wordMap;
 };
+
+function createBiwordIndex(data) {
+  const pairMap = new Map();
+
+  for (let i = 0; i < data.length; i++) {
+    const words = splitIntoWords(data[i]);
+    for (let j = 0; j < words.length - 1; j++) {
+      const pair = `${words[j]} ${words[j + 1]}`;
+      if (!pairMap.has(pair)) {
+        pairMap.set(pair, new Set());
+      }
+      pairMap.get(pair).add(i);
+    }
+  }
+
+  return pairMap;
+}
 
 module.exports = {
   createInvertedIndex,
+  createBiwordIndex,
 }
