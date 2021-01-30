@@ -46,7 +46,26 @@ function createBiwordIndex(data) {
   return pairMap;
 }
 
+function createPositionalIndex(data) {
+  const posMap = new Map();
+  for (let i = 0; i < data.length; i++) {
+    const words = splitIntoWords(data[i]);
+    for (let j = 0; j < words.length; j++) {
+      if (!posMap.has(words[j])) {
+        posMap.set(words[j], new Map()); // add new word
+      }
+      if (!posMap.get(words[j]).has(i)) {
+        posMap.get(words[j]).set(i, []); // add document number
+      }
+      posMap.get(words[j]).get(i).push(j); // add word position in the document
+    }
+  }
+
+  return posMap;
+}
+
 module.exports = {
   createInvertedIndex,
   createBiwordIndex,
+  createPositionalIndex,
 }
