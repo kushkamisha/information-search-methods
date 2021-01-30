@@ -2,7 +2,7 @@
 // + 1. Побудувати двословний індекс
 // + 2. і координатний інвертований індекс по колекції документів.
 // + 3. Реалізувати фразовий пошук
-// 4. та пошук з урахуванням відстані для кожного з них.
+// + 4. та пошук з урахуванням відстані для кожного з них.
 const { processAND, processOR, processNOT } = require('./boolOperators');
 const { createInvertedIndex, createBiwordIndex, createPositionalIndex } = require('./indexes');
 const { read } = require('./utils');
@@ -31,7 +31,7 @@ function find(query, pairMap, filenames) {
   return [...pairMap.get(query) || []].map(x => filenames[x]) || [];
 }
 
-function findInPositional(query, posMap, filenames) {
+function findInPositional(query, posMap, filenames, distance = 1) {
   const [word1, word2] = query.split(' ');
   const word1Docs = posMap.get(word1);
   const word2Docs = posMap.get(word2);
@@ -42,7 +42,7 @@ function findInPositional(query, posMap, filenames) {
       const occursWord2 = word2Docs.get(doc);
       for (let i = 0; i < occursWord1.length; i++) {
         for (let j = 0; j < occursWord2.length; j++) {
-          if (occursWord1[i] === occursWord2[j] - 1) {
+          if (occursWord1[i] === occursWord2[j] - distance) {
             resDocs.push(doc);
           }
         }
@@ -71,7 +71,7 @@ const main = async () => {
   // console.log(find('она жила', pairMap, filenames));
 
   const posMap = createPositionalIndex(data);
-  console.log(findInPositional('она жила', posMap, filenames));
+  console.log(findInPositional('она жила', posMap, filenames, 3));
 
   console.log(`Working time is ${Date.now() - start} ms`);
 }
