@@ -117,13 +117,14 @@ class BTree {
       this.root = temp;
       temp.addChild(actual, 0);
       this.__split(actual, temp, 1);
-      this.__insertNonFull(temp, parseInt(value, 10));
+      this.__insertNonFull(temp, value);
     } else {
-      this.__insertNonFull(actual, parseInt(value, 10));
+      this.__insertNonFull(actual, value);
     }
   };
 
   search(value) {
+    console.log(this.root);
     for (let i = 0; i < this.root.values.length; i++) {
       if (value === this.root.values[i]) return this.root;
       if (value < this.root.values[i]) return this.__searchValue(this.root.children[i], value);
@@ -133,6 +134,31 @@ class BTree {
       // }
     }
     return this.__searchValue(this.root.children[this.root.values.length], value);
+  }
+
+  /**
+   * Insert a value in a not-full node. O(1)
+   * @param {BTreeNode} node 
+   * @param {number} value
+   */
+  __insertNonFull(node, value) {
+    console.log({ node, value });
+    // console.log({ node });
+    if (node.leaf) {
+      node.addValue(value);
+      return;
+    }
+    let temp = node.n;
+    while (temp >= 1 && value < node.values[temp - 1]) {
+      temp = temp - 1;
+    }
+    if (node.children[temp].n === 2 * this.order - 1) {
+      this.__split(node.children[temp], node, temp + 1);
+      if (value > node.values[temp]) {
+        temp = temp + 1;
+      }
+    }
+    this.__insertNonFull(node.children[temp], value);
   }
 
   /**
@@ -326,30 +352,6 @@ class BTree {
     // Pass value to parent
     parent.addValue(child.removeValue(this.order - 1));
     parent.leaf = false;
-  }
-
-  /**
-   * Insert a value in a not-full node. O(1)
-   * @param {BTreeNode} node 
-   * @param {number} value
-   */
-  __insertNonFull(node, value) {
-    // console.log({ node });
-    if (node.leaf) {
-      node.addValue(value);
-      return;
-    }
-    let temp = node.n;
-    while (temp >= 1 && value < node.values[temp - 1]) {
-      temp = temp - 1;
-    }
-    if (node.children[temp].n === 2 * this.order - 1) {
-      this.__split(node.children[temp], node, temp + 1);
-      if (value > node.values[temp]) {
-        temp = temp + 1;
-      }
-    }
-    this.__insertNonFull(node.children[temp], value);
   }
 }
 
