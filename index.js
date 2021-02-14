@@ -20,4 +20,6 @@ tree.insert(21);
 // console.log((root.parent.parent).children[1].children);
 // const { root } = tree;
 // console.log(root);
-console.log(tree.search(5));
+const subtree = tree.search(18);
+console.log(subtree);
+// console.log(subtree.getSubtreeValues());

@@ -76,6 +76,16 @@ class BTreeNode {
   deleteChild(pos) {
     return this.children.splice(pos, 1)[0];
   }
+
+  getSubtreeValues(node = this) {
+    const values = [];
+    values.push(...node.values);
+    if (!node.children.length) return node.values;
+    for (let i = 0; i < node.children.length; i++) {
+      values.push(...node.getSubtreeValues(node.children[i]));
+    }
+    return values;
+  }
 }
 
 /**
@@ -115,25 +125,14 @@ class BTree {
 
   search(value) {
     for (let i = 0; i < this.root.values.length; i++) {
-      if (value < this.root.values[i]) {
-        return this.__searchValue(this.root.children[i], value);
-      }
+      if (value === this.root.values[i]) return this.root;
+      if (value < this.root.values[i]) return this.__searchValue(this.root.children[i], value);
+      // else if (value > this.root.values[i]) return this.__searchValue(this.root.children[i], value);
+      // if (value < this.root.values[i]) {
+      //   return this.__searchValue(this.root.children[i], value);
+      // }
     }
-  }
-
-  /**
-   * Deletes the value from the Tree. O(log N)
-   * @param {number} value 
-   */
-  delete(value) {
-    if (this.root.n === 1 && !this.root.leaf &&
-      this.root.children[0].n === this.order - 1 && this.root.children[1].n === this.order - 1) {
-      // Check if the root can shrink the tree into its childs
-      this.__mergeNodes(this.root.children[1], this.root.children[0]);
-      this.root = this.root.children[0];
-    }
-    // Start looking for the value to delete
-    this.__deleteFromNode(this.root, parseInt(value, 10));
+    return this.__searchValue(this.root.children[this.root.values.length], value);
   }
 
   /**
@@ -155,6 +154,21 @@ class BTree {
       child++;
     }
     return this.__searchValue(node.children[child], value);
+  }
+
+  /**
+   * Deletes the value from the Tree. O(log N)
+   * @param {number} value 
+   */
+  delete(value) {
+    if (this.root.n === 1 && !this.root.leaf &&
+      this.root.children[0].n === this.order - 1 && this.root.children[1].n === this.order - 1) {
+      // Check if the root can shrink the tree into its childs
+      this.__mergeNodes(this.root.children[1], this.root.children[0]);
+      this.root = this.root.children[0];
+    }
+    // Start looking for the value to delete
+    this.__deleteFromNode(this.root, parseInt(value, 10));
   }
 
   /**
