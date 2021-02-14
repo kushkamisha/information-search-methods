@@ -93,12 +93,47 @@ class BTree {
     this.root = new BTreeNode(true);
   }
 
+  /**
+   * Insert a new value in the tree O(log N)
+   * @param {number} value
+   */
+  insert(value) {
+    const actual = this.root;
+    if (actual.n === 2 * this.order - 1) {
+      // Create a new node to become the root
+      // Append the old root to the new one
+      const temp = new BTreeNode(false);
+      temp.tree = this;
+      this.root = temp;
+      temp.addChild(actual, 0);
+      this.__split(actual, temp, 1);
+      this.__insertNonFull(temp, parseInt(value, 10));
+    } else {
+      this.__insertNonFull(actual, parseInt(value, 10));
+    }
+  };
+
   search(value) {
     for (let i = 0; i < this.root.values.length; i++) {
       if (value < this.root.values[i]) {
-        return this.searchValue(this.root.children[i], value);
+        return this.__searchValue(this.root.children[i], value);
       }
     }
+  }
+
+  /**
+   * Deletes the value from the Tree. O(log N)
+   * @param {number} value 
+   */
+  delete(value) {
+    if (this.root.n === 1 && !this.root.leaf &&
+      this.root.children[0].n === this.order - 1 && this.root.children[1].n === this.order - 1) {
+      // Check if the root can shrink the tree into its childs
+      this.__mergeNodes(this.root.children[1], this.root.children[0]);
+      this.root = this.root.children[0];
+    }
+    // Start looking for the value to delete
+    this.__deleteFromNode(this.root, parseInt(value, 10));
   }
 
   /**
@@ -107,7 +142,7 @@ class BTree {
   * @param {BTreeNode} node
   * @returns {BTreeNode}
   */
-  searchValue(node, value) {
+  __searchValue(node, value) {
     if (node.values.includes(value)) {
       return node;
     }
@@ -119,22 +154,7 @@ class BTree {
     while (child <= node.n && node.values[child] < parseInt(value, 10)) {
       child++;
     }
-    return this.searchValue(node.children[child], value);
-  }
-
-  /**
-   * Deletes the value from the Tree. O(log N)
-   * @param {number} value 
-   */
-  delete(value) {
-    if (this.root.n === 1 && !this.root.leaf &&
-      this.root.children[0].n === this.order - 1 && this.root.children[1].n === this.order - 1) {
-      // Check if the root can shrink the tree into its childs
-      this.mergeNodes(this.root.children[1], this.root.children[0]);
-      this.root = this.root.children[0];
-    }
-    // Start looking for the value to delete
-    this.deleteFromNode(this.root, parseInt(value, 10));
+    return this.__searchValue(node.children[child], value);
   }
 
   /**
@@ -142,7 +162,7 @@ class BTree {
    * @param {BTreeNode} node 
    * @param {number} value 
    */
-  deleteFromNode(node, value) {
+  __deleteFromNode(node, value) {
     // Check if value is in the actual node 
     const index = node.values.indexOf(value);
     if (index >= 0) {
@@ -159,17 +179,17 @@ class BTree {
         if (node.children[index].n > this.order - 1) {
           // Replace the target value for the higher of left node.
           // Then delete that value from the child
-          const predecessor = this.getMinMaxFromSubTree(node.children[index], 1);
+          const predecessor = this.__getMinMaxFromSubTree(node.children[index], 1);
           node.values[index] = predecessor;
-          return this.deleteFromNode(node.children[index], predecessor);
+          return this.__deleteFromNode(node.children[index], predecessor);
         }
-        const successor = this.getMinMaxFromSubTree(node.children[index + 1], 0);
+        const successor = this.__getMinMaxFromSubTree(node.children[index + 1], 0);
         node.values[index] = successor;
-        return this.deleteFromNode(node.children[index + 1], successor);
+        return this.__deleteFromNode(node.children[index + 1], successor);
       }
       // Children has not enough values to transfer. Do a merge
-      this.mergeNodes(node.children[index + 1], node.children[index]);
-      return this.deleteFromNode(node.children[index], value);
+      this.__mergeNodes(node.children[index + 1], node.children[index]);
+      return this.__deleteFromNode(node.children[index], value);
     }
     // Value is not present in the node
     if (node.leaf) {
@@ -183,7 +203,7 @@ class BTree {
     }
     if (node.children[nextNode].n > this.order - 1) {
       // Child node has enough values to continue
-      return this.deleteFromNode(node.children[nextNode], value);
+      return this.__deleteFromNode(node.children[nextNode], value);
     }
     // Child node has not enough values to continue
     // Before visiting next node transfer a value or merge it with a brother
@@ -191,18 +211,18 @@ class BTree {
       (nextNode < node.n && node.children[nextNode + 1].n > this.order - 1)) {
       // One of the immediate children has enough values to transfer
       if (nextNode > 0 && node.children[nextNode - 1].n > this.order - 1) {
-        this.transferValue(node.children[nextNode - 1], node.children[nextNode]);
+        this.__transferValue(node.children[nextNode - 1], node.children[nextNode]);
       } else {
-        this.transferValue(node.children[nextNode + 1], node.children[nextNode]);
+        this.__transferValue(node.children[nextNode + 1], node.children[nextNode]);
       }
-      return this.deleteFromNode(node.children[nextNode], value);
+      return this.__deleteFromNode(node.children[nextNode], value);
     }
     // No immediate brother with enough values.
     // Merge node with immediate one brother
-    this.mergeNodes(
+    this.__mergeNodes(
       nextNode > 0 ? node.children[nextNode - 1] : node.children[nextNode + 1],
       node.children[nextNode]);
-    return this.deleteFromNode(node.children[nextNode], value);
+    return this.__deleteFromNode(node.children[nextNode], value);
   }
 
   /**
@@ -210,7 +230,7 @@ class BTree {
    * @param {BTreeNode} origin 
    * @param {BTreeNode} target 
   */
-  transferValue(origin, target) {
+  __transferValue(origin, target) {
     const indexo = origin.parent.children.indexOf(origin);
     const indext = origin.parent.children.indexOf(target);
     if (indexo < indext) {
@@ -233,7 +253,7 @@ class BTree {
    * @param {BTreeNode} origin 
    * @param {BTreeNode} target 
   */
-  mergeNodes(origin, target) {
+  __mergeNodes(origin, target) {
     const indexo = origin.parent.children.indexOf(origin);
     const indext = target.parent.children.indexOf(target);
     target.addValue(target.parent.removeValue(Math.min(indexo, indext)));
@@ -260,7 +280,7 @@ class BTree {
    * @param { 0 | 1 } max 1 for find max, 0 for min
    * @returns {number}
    */
-  getMinMaxFromSubTree(node, max) {
+  __getMinMaxFromSubTree(node, max) {
     while (!node.leaf) {
       node = node.children[max ? node.n : 0];
     }
@@ -268,32 +288,12 @@ class BTree {
   }
 
   /**
-   * Insert a new value in the tree O(log N)
-   * @param {number} value
-   */
-  insert(value) {
-    const actual = this.root;
-    if (actual.n === 2 * this.order - 1) {
-      // Create a new node to become the root
-      // Append the old root to the new one
-      const temp = new BTreeNode(false);
-      temp.tree = this;
-      this.root = temp;
-      temp.addChild(actual, 0);
-      this.split(actual, temp, 1);
-      this.insertNonFull(temp, parseInt(value, 10));
-    } else {
-      this.insertNonFull(actual, parseInt(value, 10));
-    }
-  };
-
-  /**
    * Divide child node from parent into parent.values[pos-1] and parent.values[pos]. O(1)
    * @param {BTreeNode} child 
    * @param {BTreeNode} parent 
    * @param {number} pos 
    */
-  split(child, parent, pos) {
+  __split(child, parent, pos) {
     const newChild = new BTreeNode(child.leaf);
     newChild.tree = this.root.tree;
     // Create a new child
@@ -319,7 +319,7 @@ class BTree {
    * @param {BTreeNode} node 
    * @param {number} value
    */
-  insertNonFull(node, value) {
+  __insertNonFull(node, value) {
     // console.log({ node });
     if (node.leaf) {
       node.addValue(value);
@@ -330,12 +330,12 @@ class BTree {
       temp = temp - 1;
     }
     if (node.children[temp].n === 2 * this.order - 1) {
-      this.split(node.children[temp], node, temp + 1);
+      this.__split(node.children[temp], node, temp + 1);
       if (value > node.values[temp]) {
         temp = temp + 1;
       }
     }
-    this.insertNonFull(node.children[temp], value);
+    this.__insertNonFull(node.children[temp], value);
   }
 }
 
