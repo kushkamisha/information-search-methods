@@ -83,14 +83,22 @@ class BTreeNode {
  * @type {BTree}
 */
 class BTree {
-  constructor(order, root) {
+  constructor(order) {
     /** @type {number} */
     this.order = order;
     /** 
      * Root node of the tree.
      * @type {BTreeNode} 
     */
-    this.root = root;
+    this.root = new BTreeNode(true);
+  }
+
+  search(value) {
+    for (let i = 0; i < this.root.values.length; i++) {
+      if (value < this.root.values[i]) {
+        return this.searchValue(this.root.children[i], value);
+      }
+    }
   }
 
   /**
