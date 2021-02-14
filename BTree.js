@@ -354,6 +354,5 @@ class BTree {
 }
 
 module.exports = {
-  BTreeNode,
   BTree,
 }
