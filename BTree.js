@@ -83,14 +83,14 @@ class BTreeNode {
  * @type {BTree}
 */
 class BTree {
-  constructor(order) {
+  constructor(order, root) {
     /** @type {number} */
     this.order = order;
     /** 
      * Root node of the tree.
      * @type {BTreeNode} 
     */
-    this.root = null;
+    this.root = root;
   }
 
   /**
@@ -265,7 +265,7 @@ class BTree {
    */
   insert(value) {
     const actual = this.root;
-    if (actual?.n === 2 * this.order - 1) {
+    if (actual.n === 2 * this.order - 1) {
       // Create a new node to become the root
       // Append the old root to the new one
       const temp = new BTreeNode(false);
@@ -312,11 +312,12 @@ class BTree {
    * @param {number} value
    */
   insertNonFull(node, value) {
-    if (node?.leaf) {
+    // console.log({ node });
+    if (node.leaf) {
       node.addValue(value);
       return;
     }
-    let temp = node?.n;
+    let temp = node.n;
     while (temp >= 1 && value < node.values[temp - 1]) {
       temp = temp - 1;
     }
@@ -331,5 +332,6 @@ class BTree {
 }
 
 module.exports = {
+  BTreeNode,
   BTree,
 }
