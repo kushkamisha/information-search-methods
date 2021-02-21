@@ -1,5 +1,5 @@
 const { read } = require('./utils');
-const { stepMap } = require('./indexing');
+const { stepMap, stepReduce } = require('./indexing');
 
 const filenames = [
   "cut Война и мир. Том 1.txt",
@@ -21,6 +21,7 @@ const main = async () => {
   const data = await Promise.all(filenames.map(filename => read(filename)));
 
   stepMap(data);
+  stepReduce();
 
   // console.log(`Dict size is ${[...dict.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
 
