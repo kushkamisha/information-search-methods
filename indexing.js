@@ -67,15 +67,23 @@ function splitArrayByLetters(arr, letters) {
       ranges[letters.length].push(arr[i]);
     }
   }
+  return ranges;
   // first range is at the end => moving it to the front
-  return [ranges[ranges.length - 1], ...ranges.slice(0, ranges.length - 1)];
+  // return [ranges[ranges.length - 1], ...ranges.slice(0, ranges.length - 1)];
 }
 
 function stepReduce() {
   const wordDocIdMap = buildOccurrencesMap();
   const sortedWordDocIdArr = [...wordDocIdMap.entries()].sort();
-  const ranges = splitArrayByLetters(sortedWordDocIdArr, ['ж', 'л', 'ф']);
-  console.log(ranges);
+  const letters = ['ж', 'л', 'ф'];
+  const ranges = splitArrayByLetters(sortedWordDocIdArr, letters);
+  // const line = ranges[0][0];
+  // console.log(`${line[0]},${[...line[1].entries()].join(',')}`);
+  ranges.forEach((range, i) => {
+    // console.log();
+    fs.writeFileSync(path.join(__dirname, 'output', `segment-${letters[i]}.txt`),
+      range.map(pair => `${pair[0]},${[...pair[1].entries()].join(', ')}`).join('\n'));
+  })
 }
 
 module.exports = {

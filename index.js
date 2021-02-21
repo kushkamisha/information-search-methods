@@ -23,19 +23,6 @@ const main = async () => {
   stepMap(data);
   stepReduce();
 
-  // console.log(`Dict size is ${[...dict.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
-
-  // console.log([...dict.get('императрица')].map(x => filenames[x]));
-  // console.log([...dict.get('бояре')].map(x => filenames[x]));
-  // console.log([...dict.get('княгиня')].map(x => filenames[x]));
-
-  // console.log(processAtomicQuery('императрица AND княгиня', dict, filenames.length).map(x => filenames[x]));
-  // console.log(processAtomicQuery('императрица OR княгиня', dict, filenames.length).map(x => filenames[x]));
-  // console.log(processAtomicQuery('NOT княгиня', dict, filenames.length).map(x => filenames[x]));
-
-  // const pairMap = createBiwordIndex(data);
-  // console.log(find('она жила', pairMap, filenames));
-
   console.log(`Working time is ${Date.now() - start} ms`);
 }
 
