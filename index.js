@@ -3,6 +3,7 @@ const { stepMap } = require('./indexing');
 
 const filenames = [
   "cut Война и мир. Том 1.txt",
+  "cut Бесы.txt",
   // "Война и мир. Том 1.txt",
   // "Война и мир. Том 2.txt",
   // "Война и мир. Том 3.txt",
@@ -17,10 +18,9 @@ const filenames = [
 
 const main = async () => {
   const start = Date.now();
-  // const data = await Promise.all(filenames.map(filename => read(filename)));
-  const data = await read(filenames[0]);
-  // console.log(data);
-  console.log(stepMap(data, 1));
+  const data = await Promise.all(filenames.map(filename => read(filename)));
+
+  console.log(stepMap(data));
 
   // console.log(`Dict size is ${[...dict.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
 
