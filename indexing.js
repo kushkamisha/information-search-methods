@@ -1,10 +1,18 @@
+const fs = require('fs');
+const path = require('path');
+
 function stepMap(data) {
-  const termDocPairs = new Set();
+  const segmentFile = fs.createWriteStream(path.join(__dirname, 'output', 'segment.txt'), {
+    flags: 'w',
+  });
   let word = '';
+
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       if (data[i][j] === ' ' || data[i][j] === '\n') {
-        if (word.length) termDocPairs.add([word, i])
+        if (word.length) {
+          segmentFile.write(`${word},${i}\n`);
+        }
         word = '';
       } else if (/[^а-яА-Я ]+/g.test(data[i][j])) {
         continue;
@@ -13,7 +21,6 @@ function stepMap(data) {
       }
     }
   }
-  return termDocPairs;
 }
 
 module.exports = {

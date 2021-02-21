@@ -20,7 +20,7 @@ const main = async () => {
   const start = Date.now();
   const data = await Promise.all(filenames.map(filename => read(filename)));
 
-  console.log(stepMap(data));
+  stepMap(data);
 
   // console.log(`Dict size is ${[...dict.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
 
