@@ -1,24 +1,37 @@
-const { BTree } = require('./BTree');
+const { read } = require('./utils');
 
-const t = 2; // 1 .. 2*t-1
-const tree = new BTree(t);
-// tree.insert(1);
-// tree.insert(2);
-// tree.insert(5);
-// tree.insert(6);
-// tree.insert(7);
-// tree.insert(16);
-// tree.insert(9);
-// tree.insert(12);
-// tree.insert(18);
-// tree.insert(21);
+const filenames = [
+  "Война и мир. Том 1.txt",
+  "Война и мир. Том 2.txt",
+  "Война и мир. Том 3.txt",
+  "Война и мир. Том 4.txt",
+  "Мастер и Маргарита.txt",
+  "Волшебник Изумрудного города.txt",
+  "Братья Карамазовы.txt",
+  "Идиот.txt",
+  "Униженные и оскорбленные.txt",
+  "Бесы.txt",
+];
 
-tree.insert('Misha');
-tree.insert('Masha');
-tree.insert('Petya');
-tree.insert('Vasya');
+const main = async () => {
+  const start = Date.now();
+  const data = await Promise.all(filenames.map(filename => read(filename)));
+  console.log(data.length);
 
-const subtree = tree.search('Misha');
-// console.log(subtree);
-console.log(subtree.getSubtreeValues());
-// console.log(tree.root);
+  // console.log(`Dict size is ${[...dict.values()].reduce((acc, x) => acc + Array.from(x).toString().length, 0)} symbols`);
+
+  // console.log([...dict.get('императрица')].map(x => filenames[x]));
+  // console.log([...dict.get('бояре')].map(x => filenames[x]));
+  // console.log([...dict.get('княгиня')].map(x => filenames[x]));
+
+  // console.log(processAtomicQuery('императрица AND княгиня', dict, filenames.length).map(x => filenames[x]));
+  // console.log(processAtomicQuery('императрица OR княгиня', dict, filenames.length).map(x => filenames[x]));
+  // console.log(processAtomicQuery('NOT княгиня', dict, filenames.length).map(x => filenames[x]));
+
+  // const pairMap = createBiwordIndex(data);
+  // console.log(find('она жила', pairMap, filenames));
+
+  console.log(`Working time is ${Date.now() - start} ms`);
+}
+
+main();
