@@ -124,7 +124,7 @@ class BTree {
   };
 
   search(value) {
-    console.log(this.root);
+    // console.log(this.root);
     for (let i = 0; i < this.root.values.length; i++) {
       if (value === this.root.values[i]) return this.root;
       if (value < this.root.values[i]) return this.__searchValue(this.root.children[i], value);
@@ -142,7 +142,7 @@ class BTree {
    * @param {number} value
    */
   __insertNonFull(node, value) {
-    console.log({ node, value });
+    // console.log({ node, value });
     // console.log({ node });
     if (node.leaf) {
       node.addValue(value);
@@ -168,9 +168,11 @@ class BTree {
   * @returns {BTreeNode}
   */
   __searchValue(node, value) {
+    // console.log(node);
     if (node.values.includes(value)) {
       return node;
     }
+    // if (!node.children.length) return null;
     if (node.leaf) {
       // Value was not found
       return null;
@@ -179,6 +181,7 @@ class BTree {
     while (child <= node.n && node.values[child] < parseInt(value, 10)) {
       child++;
     }
+    // console.log({ child })
     return this.__searchValue(node.children[child], value);
   }
 
