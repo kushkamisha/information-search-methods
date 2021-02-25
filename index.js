@@ -7,68 +7,23 @@ const Node = BinaryTree.Node;
 
 const tree = new Tree();
 
-// const t = 1 // 2; // 1 .. 2*t-1
-// const tree = new BTree(t);
-// // tree.insert(12);
-// // tree.insert(18);
-// // tree.insert(21);
-// // tree.insert(1);
-// // tree.insert(2);
-// // tree.insert(5);
-// // tree.insert(6);
-// // tree.insert(7);
-// // tree.insert(16);
-// // tree.insert(9);
+// tree.insert('в');
+// tree.insert('ов');
+// tree.insert('ров');
+// tree.insert('иров');
+// tree.insert('жиров');
+// tree.insert('ажиров');
+// tree.insert('сажиров');
+// tree.insert('ссажиров');
+// tree.insert('ассажиров');
+// tree.insert('пассажиров');
 
-// tree.insert('o');
-// tree.insert('lo');
-// tree.insert('llo');
-// tree.insert('ello');
-// tree.insert('hello');
-
-// tree.insert('hello$');
-// tree.insert('ello$h');
-// tree.insert('llo$he');
-// tree.insert('lo$hel');
-// tree.insert('o$hell');
-// tree.insert('$hello');
-
-// tree.insert('l');
-// tree.insert('ll');
-// tree.insert('llo$');
-// tree.insert('llo$h');
-// tree.insert('llo$he');
-// tree.insert('llo');
-
-tree.insert('o');
-tree.insert('lo');
-tree.insert('llo');
-tree.insert('ello');
-tree.insert('hello');
-
-// tree.insert('o');
-// tree.insert('lo');
-// tree.insert('alo');
-// tree.insert('malo');
-
-// tree.bulkInsert(50, 25, 75, 60, 90);
-// tree.insert(50);
-// tree.insert(25);
-// tree.insert(75);
-// tree.insert(60);
-// tree.insert(90);
-tree.print();
-// tree.preOrderTraversal(function (node) {
-//   console.log(node.value);
-// });
-// console.log(tree.search('hello'));
-const subtree = tree.search('hello');
-// console.log(subtree.getSubtreeValues());
-console.log(tree.getRightValues(subtree));
-// console.log(util.inspect(subtree, true, 4, true));
+// tree.print();
+// const subtree = tree.search('ссажиров');
+// console.log(tree.getRightValues(subtree));
 
 async function main() {
-  const data = splitIntoWords(await read('Идиот.txt')).slice(0, 100);
+  const data = splitIntoWords(await read('Идиот.txt')).slice(0, 5);
   console.log(data);
 
   for (let i = 0; i < data.length; i++) {
@@ -81,10 +36,13 @@ async function main() {
     }
   }
 
-  const subtree = tree.search('пассажиров');
-  console.log(util.inspect(subtree, true, 4, true));
-  // console.log(subtree.getSubtreeValues());
-  // console.log(tree.root);
+  // tree.print()
+
+  const subtree = tree.search('ан');
+  console.log(util.inspect(tree.getRightSubtree((data) => console.log(data), subtree), true, 4, true));
+  // console.log(tree.getRightValues(subtree));
+
+  // tree.preOrderTraversal((data) => { console.log(data.key); }, subtree);
 }
 
-// main();
+main();
