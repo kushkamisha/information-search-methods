@@ -21,6 +21,16 @@ class PrefixTree {
     }
     return true;
   }
+
+  addWord(word, letters = this.letters) {
+    if (!word.length) return letters;
+    const letter = word[0];
+    if (!letters.has(letter)) {
+      letters.set(letter, { name: letter, letters: new Map() });
+    }
+    // console.log({ letters: letters.get(letter).letters });
+    this.addWord(word.slice(1), letters.get(letter).letters);
+  }
 }
 
 module.exports = {
