@@ -29,7 +29,7 @@ class SuffixTree {
   }
 
   __flattenMap(prefix, subtree, wordDocId = []) {
-    if (!subtree.letters.size) return wordDocId;
+    if (!subtree || !subtree.letters || !subtree.letters.size) return wordDocId;
     subtree.letters.forEach((value, letter) => {
       if (value.docIndexes.size) {
         wordDocId.push([letter + prefix, value.docIndexes]);

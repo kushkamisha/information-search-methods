@@ -1,4 +1,4 @@
-class PrefixTree {
+class GramTree {
   constructor() {
     this.letters = new Map();
   }
@@ -42,5 +42,5 @@ class PrefixTree {
 }
 
 module.exports = {
-  PrefixTree,
+  GramTree,
 }
