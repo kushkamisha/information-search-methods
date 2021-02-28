@@ -1,3 +1,5 @@
+const util = require('util');
+
 class PrefixTree {
   constructor() {
     this.letters = new Map();
@@ -23,6 +25,23 @@ class PrefixTree {
       if (prefix.length === 1) return letters.get(letter);
       return this.getSubtree(prefix.slice(1), letters.get(letter).letters);
     }
+  }
+
+  getSubtreeWords(prefix) {
+    const subtree = this.getSubtree(prefix);
+    return this.__flattenMap(prefix, subtree);
+  }
+
+  __flattenMap(prefix /* h */, subtree /* e -> {...}, i -> {...} */, wordDocId = []) {
+    // console.log(util.inspect({ prefix, subtree, wordDocId }, true, null, true));
+    if (!subtree.letters.size) return wordDocId;
+    subtree.letters.forEach((value, letter) => {
+      if (value.docIndexes.size) {
+        wordDocId.push([prefix + letter, value.docIndexes]);
+      }
+      wordDocId = [...wordDocId, ...this.__flattenMap(prefix + letter, value, wordDocId)];
+    })
+    return [...new Set(wordDocId)];
   }
 }
 
