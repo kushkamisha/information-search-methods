@@ -1,5 +1,5 @@
 const { PrefixTree } = require('./PrefixTree');
-const { intersection } = require('./utils');
+const { arrIntersection } = require('./utils');
 
 class PermutationIndex {
   constructor() {
@@ -18,7 +18,7 @@ class PermutationIndex {
     if (!prefix && !suffix) return;
     if (!prefix) return this.__processSuffix(suffix);
     if (!suffix) return this.__processPrefix(prefix);
-    return intersection(
+    return arrIntersection(
       this.__processPrefix(prefix),
       this.__processSuffix(suffix)
     );

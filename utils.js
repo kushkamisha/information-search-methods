@@ -21,7 +21,7 @@ function splitIntoWords(data) {
   return processed;
 }
 
-const intersection = (arr1, arr2) => {
+const arrIntersection = (arr1, arr2) => {
   const result = [];
   for (let i = 0; i < arr1.length; i++) {
     for (let j = 0; j < arr2.length; j++) {
@@ -33,6 +33,6 @@ const intersection = (arr1, arr2) => {
 
 module.exports = {
   read,
-  intersection,
+  arrIntersection,
   splitIntoWords,
 }

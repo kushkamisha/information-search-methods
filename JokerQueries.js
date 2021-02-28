@@ -1,6 +1,6 @@
 const { PrefixTree } = require('./PrefixTree');
 const { SuffixTree } = require('./SuffixTree');
-const { intersection } = require('./utils');
+const { arrIntersection } = require('./utils');
 
 class JokerQueries {
   constructor() {
@@ -18,7 +18,7 @@ class JokerQueries {
     if (!prefix && !suffix) return;
     if (!prefix) return this.suffix.getSubtreeWords(suffix);
     if (!suffix) return this.prefix.getSubtreeWords(prefix);
-    return intersection(
+    return arrIntersection(
       this.prefix.getSubtreeWords(prefix),
       this.suffix.getSubtreeWords(suffix)
     );

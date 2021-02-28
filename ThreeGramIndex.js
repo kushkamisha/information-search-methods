@@ -1,4 +1,4 @@
-const { intersection } = require('./utils');
+const { arrIntersection } = require('./utils');
 
 class ThreeGramIndex {
   constructor() {
@@ -8,12 +8,16 @@ class ThreeGramIndex {
   addWord(word, docId) {
     const grams = this.__make3Grams(word);
     for (const gram of grams) {
-      const list = this.words.get(gram);
-      if (list) {
-        list.push([word, docId]);
-        this.words.set(gram, list);
+      if (this.words.get(gram)) {
+        const docIds = this.words.get(gram).get(word);
+        if (docIds) {
+          docIds.add(docId);
+          this.words.get(gram).set(word, docIds);
+        } else {
+          this.words.get(gram).set(word, new Set([docId]));
+        }
       } else {
-        this.words.set(gram, [[word, docId]]);
+        this.words.set(gram, new Map([[word, new Set([docId])]]));
       }
     }
   }
@@ -23,18 +27,18 @@ class ThreeGramIndex {
     if (!prefix && !suffix) return;
     if (!prefix) return this.__processSuffix(suffix);
     if (!suffix) return this.__processPrefix(prefix);
-    return intersection(
+    return arrIntersection(
       this.__processPrefix(prefix),
       this.__processSuffix(suffix)
     );
   }
 
   __processPrefix(prefix) {
-    return this.words.get(`$${prefix}`) || [];
+    return this.words.get(`$${prefix}`) ? [...this.words.get(`$${prefix}`).entries()] : [];
   }
 
   __processSuffix(suffix) {
-    return this.words.get(`${suffix}$`) || [];
+    return this.words.get(`${suffix}$`) ? [...this.words.get(`${suffix}$`).entries()] : [];
   }
 
   __make3Grams(word) {
