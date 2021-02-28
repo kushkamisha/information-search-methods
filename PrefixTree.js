@@ -32,8 +32,7 @@ class PrefixTree {
     return this.__flattenMap(prefix, subtree);
   }
 
-  __flattenMap(prefix /* h */, subtree /* e -> {...}, i -> {...} */, wordDocId = []) {
-    // console.log(util.inspect({ prefix, subtree, wordDocId }, true, null, true));
+  __flattenMap(prefix, subtree, wordDocId = []) {
     if (!subtree.letters.size) return wordDocId;
     subtree.letters.forEach((value, letter) => {
       if (value.docIndexes.size) {

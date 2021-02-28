@@ -1,5 +1,5 @@
 const util = require('util');
-const { read, splitIntoWords } = require('./utils');
+const { read, splitIntoWords, intersection } = require('./utils');
 const { PrefixTree } = require('./PrefixTree');
 const { SuffixTree } = require('./SuffixTree');
 
@@ -20,5 +20,7 @@ suffix.addWord('halo', 3)
 
 // console.log(util.inspect(prefix.getSubtree('h'), true, null, true));
 // console.log(util.inspect(suffix.getSubtree('lo'), true, null, true));
-console.log(prefix.getSubtreeWords('h'));
-// console.log(util.inspect(suffix.getSubtree('lo'), true, null, true));
+const firstPart = prefix.getSubtreeWords('h');
+const secondPart = suffix.getSubtreeWords('lo');
+console.log(firstPart, secondPart);
+console.log(intersection(firstPart, secondPart));
