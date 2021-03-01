@@ -1,11 +1,12 @@
-const fs = require('fs');
+const path = require('path');
 const { stepMap, stepReduce } = require('./indexing');
+const { cleanUp } = require('./utils');
 
 const filenames = [
-  "cut Война и мир. Том 1.txt",
-  "cut Бесы.txt",
-  // "Война и мир. Том 1.txt",
-  // "Война и мир. Том 2.txt",
+  // "cut Война и мир. Том 1.txt",
+  // "cut Бесы.txt",
+  "Война и мир. Том 1.txt",
+  "Война и мир. Том 2.txt",
   // "Война и мир. Том 3.txt",
   // "Война и мир. Том 4.txt",
   // "Мастер и Маргарита.txt",
@@ -19,6 +20,7 @@ const filenames = [
 const main = async () => {
   const start = Date.now();
 
+  cleanUp(path.join(__dirname, 'output'));
   await stepMap(filenames);
   await stepReduce();
 
@@ -26,31 +28,3 @@ const main = async () => {
 }
 
 main();
-
-// (async () => {
-//   const file = 'output/segment.txt';
-//   const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 20 });
-//   let prev = '';
-//   const processed = [];
-
-//   stream.on('data', (chunk) => {
-//     if (prev.length) {
-//       chunk = prev + chunk;
-//       prev = '';
-//     }
-
-//     const lines = chunk.split('\n');
-//     for (let i = 0; i < lines.length; i++) {
-//       if (/^[А-я]+,[0-9]+$/.test(lines[i])) {
-//         processed.push(lines[i].split(','));
-//       } else {
-//         prev = lines[i];
-//       }
-//     }
-//   })
-
-//   stream.on('end', () => {
-//     console.log(processed);
-//   })
-
-// })()
