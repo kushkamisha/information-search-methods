@@ -103,7 +103,7 @@ async function stepReduce() {
 
   return new Promise((resolve) => {
     console.log(`>> reading ${file}`);
-    const stream = fs.createReadStream(file, { encoding: 'utf8'/*, highWaterMark: 20*/ });
+    const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 1024 * 1024 * 1024 /* 1 GB */ });
     let prev = '';
     const processed = [];
     let chunkId = 0;
