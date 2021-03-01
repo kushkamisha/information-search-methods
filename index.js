@@ -1,20 +1,19 @@
 const fs = require('fs');
 const { stepMap, stepReduce } = require('./indexing');
-const { Liner } = require('./Liner');
 
 const filenames = [
-  // "cut Война и мир. Том 1.txt",
-  // "cut Бесы.txt",
-  "Война и мир. Том 1.txt",
-  "Война и мир. Том 2.txt",
-  "Война и мир. Том 3.txt",
-  "Война и мир. Том 4.txt",
-  "Мастер и Маргарита.txt",
-  "Волшебник Изумрудного города.txt",
-  "Братья Карамазовы.txt",
-  "Идиот.txt",
-  "Униженные и оскорбленные.txt",
-  "Бесы.txt",
+  "cut Война и мир. Том 1.txt",
+  "cut Бесы.txt",
+  // "Война и мир. Том 1.txt",
+  // "Война и мир. Том 2.txt",
+  // "Война и мир. Том 3.txt",
+  // "Война и мир. Том 4.txt",
+  // "Мастер и Маргарита.txt",
+  // "Волшебник Изумрудного города.txt",
+  // "Братья Карамазовы.txt",
+  // "Идиот.txt",
+  // "Униженные и оскорбленные.txt",
+  // "Бесы.txt",
 ];
 
 const main = async () => {
@@ -28,23 +27,45 @@ const main = async () => {
 
 // main();
 
-// const source = fs.createReadStream('output/segment.txt');
-// const liner = new Liner({ delimiter: ',' });
-
-// source.pipe(liner);
-
-// liner.on('readable', () => {
-//   let line
-//   while (null !== (line = liner.read())) {
-//     console.log(line)
-//   }
-// })
-
 (async () => {
   const file = 'output/segment.txt';
-  const stream = fs.createReadStream(file, { encoding: 'utf8', /*highWaterMark: 20000*/ });
+  const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 20 });
+  let prev = '';
   stream.on('data', (chunk) => {
-    console.log(chunk.length);
+    if (prev.length) {
+      chunk = prev + chunk;
+      prev = '';
+    }
+
+    const lines = chunk.split('\n');
+    const processed = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (/^[А-я]+,[0-9]+$/.test(lines[i])) {
+        processed.push(lines[i].split(','));
+      } else {
+        prev = lines[i];
+      }
+    }
+
+    console.log(processed);
+
+
+    // const processed = [];
+    // const lines = chunk.split('\n');
+    // for (let i = 0; i < lines.length; i++) {
+    //   const [word, docId] = lines[i].split(',');
+    //   // console.log({ word, docId });
+    //   if (docId === undefined) {
+    //     prev = word;
+    //   } else if (word !== undefined) {
+    //     processed.push([word, docId]);
+    //   }
+    // }
+    // console.log();
+    // console.log(processed);
+    // // console.log(lines.slice(0, 10));
+    // // console.log(lines.slice(-10));
+    // console.log();
   })
   // const firstByte = await stream[Symbol.asyncIterator]().next();
   // for (firstByte of stream[Symbol.asyncIterator]().next()) {
