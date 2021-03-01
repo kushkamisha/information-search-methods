@@ -20,55 +20,37 @@ const main = async () => {
   const start = Date.now();
 
   await stepMap(filenames);
-  stepReduce();
+  await stepReduce();
 
   console.log(`Working time is ${Date.now() - start} ms`);
 }
 
-// main();
+main();
 
-(async () => {
-  const file = 'output/segment.txt';
-  const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 20 });
-  let prev = '';
-  stream.on('data', (chunk) => {
-    if (prev.length) {
-      chunk = prev + chunk;
-      prev = '';
-    }
+// (async () => {
+//   const file = 'output/segment.txt';
+//   const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 20 });
+//   let prev = '';
+//   const processed = [];
 
-    const lines = chunk.split('\n');
-    const processed = [];
-    for (let i = 0; i < lines.length; i++) {
-      if (/^[А-я]+,[0-9]+$/.test(lines[i])) {
-        processed.push(lines[i].split(','));
-      } else {
-        prev = lines[i];
-      }
-    }
+//   stream.on('data', (chunk) => {
+//     if (prev.length) {
+//       chunk = prev + chunk;
+//       prev = '';
+//     }
 
-    console.log(processed);
+//     const lines = chunk.split('\n');
+//     for (let i = 0; i < lines.length; i++) {
+//       if (/^[А-я]+,[0-9]+$/.test(lines[i])) {
+//         processed.push(lines[i].split(','));
+//       } else {
+//         prev = lines[i];
+//       }
+//     }
+//   })
 
+//   stream.on('end', () => {
+//     console.log(processed);
+//   })
 
-    // const processed = [];
-    // const lines = chunk.split('\n');
-    // for (let i = 0; i < lines.length; i++) {
-    //   const [word, docId] = lines[i].split(',');
-    //   // console.log({ word, docId });
-    //   if (docId === undefined) {
-    //     prev = word;
-    //   } else if (word !== undefined) {
-    //     processed.push([word, docId]);
-    //   }
-    // }
-    // console.log();
-    // console.log(processed);
-    // // console.log(lines.slice(0, 10));
-    // // console.log(lines.slice(-10));
-    // console.log();
-  })
-  // const firstByte = await stream[Symbol.asyncIterator]().next();
-  // for (firstByte of stream[Symbol.asyncIterator]().next()) {
-  //   console.log(`${file} >>> ${firstByte.value.length}`);
-  // }
-})()
+// })()

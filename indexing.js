@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { resolve } = require('path');
 const path = require('path');
 const { read } = require('./utils');
 
@@ -43,29 +44,55 @@ async function processFile(filename, fileId, outputStream) {
   }
 }
 
-function buildOccurrencesMap() {
-  const data = fs.readFileSync(path.join(__dirname, 'output', 'segment.txt'), 'utf8');
-  if (!data.length) throw Error(`No file ${path.join(__dirname, 'output', 'segment.txt')}`);
-  const lines = data.split('\n');
+async function buildOccurrencesMap() {
+  // const data = fs.readFileSync(path.join(__dirname, 'output', 'segment.txt'), 'utf8');
+  // if (!data.length) throw Error(`No file ${path.join(__dirname, 'output', 'segment.txt')}`);
+  // const lines = data.split('\n');
 
-  const wordDocIdMap = new Map();
-  for (let i = 0; i < lines.length; i++) {
-    if (!lines[i].length) continue;
-    const [word, docId] = lines[i].split(',');
-    if (wordDocIdMap.has(word)) {
-      const docIds = wordDocIdMap.get(word);
-      const occurences = docIds.get(docId);
-      if (occurences) {
-        docIds.set(docId, occurences + 1);
-      } else {
-        docIds.set(docId, 1);
+  return new Promise((resolve) => {
+    const file = 'output/segment.txt';
+    const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 20 });
+    let prev = '';
+    const processed = [];
+
+    stream.on('data', (chunk) => {
+      if (prev.length) {
+        chunk = prev + chunk;
+        prev = '';
       }
-    } else {
-      wordDocIdMap.set(word, new Map([[docId, 1]]));
-    }
-  }
 
-  return wordDocIdMap;
+      const lines = chunk.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (/^[А-я]+,[0-9]+$/.test(lines[i])) {
+          processed.push(lines[i].split(','));
+        } else {
+          prev = lines[i];
+        }
+      }
+    });
+
+    stream.on('end', () => {
+      // console.log(processed);
+
+      const wordDocIdMap = new Map();
+      for (let i = 0; i < processed.length; i++) {
+        // if (!processed[i].length) continue;
+        const [word, docId] = processed[i];
+        if (wordDocIdMap.has(word)) {
+          const docIds = wordDocIdMap.get(word);
+          const occurences = docIds.get(docId);
+          if (occurences) {
+            docIds.set(docId, occurences + 1);
+          } else {
+            docIds.set(docId, 1);
+          }
+        } else {
+          wordDocIdMap.set(word, new Map([[docId, 1]]));
+        }
+      }
+      resolve(wordDocIdMap);
+    });
+  });
 }
 
 function splitArrayByLetters(arr, letters) {
@@ -81,6 +108,7 @@ function splitArrayByLetters(arr, letters) {
           if (!ranges[j]) ranges[j] = [];
           ranges[j].push(arr[i]);
           isPushed = true;
+          anyWords = true;
         }
       }
     }
@@ -89,12 +117,17 @@ function splitArrayByLetters(arr, letters) {
       ranges[letters.length].push(arr[i]);
     }
   }
+  for (let i = 0; i < ranges.length; i++) {
+    if (!ranges[i]) {
+      ranges[i] = [];
+    }
+  }
   return ranges;
 }
 
-function stepReduce() {
+async function stepReduce() {
   console.log(`Step reduce`);
-  const wordDocIdMap = buildOccurrencesMap();
+  const wordDocIdMap = await buildOccurrencesMap();
   const sortedWordDocIdArr = [...wordDocIdMap.entries()].sort();
   const letters = ['а', 'б', 'ж', 'л', 'п', 'ф'];
   const ranges = splitArrayByLetters(sortedWordDocIdArr, letters);
