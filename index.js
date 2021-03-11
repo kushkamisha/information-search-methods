@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const { stepMap, stepReduce } = require('./indexing');
 const { cleanUp } = require('./utils');
@@ -20,9 +21,12 @@ const filenames = [
 const main = async () => {
   const start = Date.now();
 
-  cleanUp(path.join(__dirname, 'output'));
-  await stepMap(filenames);
-  await stepReduce();
+  const outputDir = path.join(__dirname, 'output');
+
+  cleanUp(outputDir);
+  await stepMap(filenames, outputDir);
+  await stepReduce(outputDir);
+  fs.unlinkSync(path.join(outputDir, 'segment.txt'));
 
   console.log(`Working time is ${Date.now() - start} ms`);
 }

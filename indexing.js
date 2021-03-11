@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { read, getFilesizeInBytes } = require('./utils');
 
-async function stepMap(filenames) {
+async function stepMap(filenames, outputDir) {
   return new Promise(async (resolve) => {
-    const outputPath = path.join(__dirname, 'output', 'segment.txt');
-    const segmentFileStream = fs.createWriteStream(outputPath, { flags: 'a' });
+    const segmentFilePath = path.join(outputDir, 'segment.txt');
+    const segmentFileStream = fs.createWriteStream(segmentFilePath, { flags: 'a' });
 
     let i = 0;
     for await ((filename) of filenames) {
@@ -95,15 +95,14 @@ function splitArrayByLetters(arr, letters) {
   return ranges;
 }
 
-async function stepReduce() {
+async function stepReduce(outputDir) {
   console.log(`Step reduce`);
-
-  const file = path.join(__dirname, 'output', 'segment.txt');
-  const totalSize = getFilesizeInBytes(file);
+  const segmentFilePath = path.join(outputDir, 'segment.txt');
+  const totalSize = getFilesizeInBytes(segmentFilePath);
 
   return new Promise((resolve) => {
-    console.log(`>> reading ${file}`);
-    const stream = fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 1024 * 1024 * 1024 /* 1 GB */ });
+    console.log(`>> reading ${segmentFilePath}`);
+    const stream = fs.createReadStream(segmentFilePath, { encoding: 'utf8', highWaterMark: 1024 * 1024 * 1024 /* 1 GB */ });
     let prev = '';
     const processed = [];
     let chunkId = 0;
@@ -138,8 +137,8 @@ async function stepReduce() {
       const ranges = splitArrayByLetters(sortedWordDocIdArr, letters);
 
       for (let i = 0; i < ranges.length; i++) {
-        fs.writeFileSync(path.join(__dirname, 'output', `segment-${letters[i]}.txt`),
-          ranges[i].map(pair => `${pair[0]},${[...pair[1].entries()].join(', ')}`).join('\n'));
+        fs.writeFileSync(path.join(outputDir, `segment-${letters[i]}.txt`),
+          ranges[i].map(pair => `${pair[0]},${[...pair[1].entries()].join(',')}`).join('\n'));
       }
     });
 
