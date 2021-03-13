@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const { read, getFilesizeInBytes } = require('./utils');
+const { MainEmitter } = require('./MainEmitter');
+
+const emitter = new MainEmitter();
+emitter.setMaxListeners(1000);
 
 async function stepMap(filenames, outputDir) {
   return new Promise(async (resolve) => {
@@ -64,45 +68,17 @@ function buildOccurrencesMap(processed) {
   return wordDocIdMap;
 }
 
-function splitArrayByLetters(arr, letters) {
-  // console.log('Splitting array by letters');
-  const ranges = new Array(letters.length).fill();
-
-  for (let i = 0; i < arr.length - 1; i++) {
-    const word = arr[i][0];
-    let isPushed = false;
-    for (let j = 0; j < letters.length; j++) {
-      const firstLetter = word[0];
-      if (firstLetter >= letters[j]) {
-        if (firstLetter < letters[j + 1] || letters[j + 1] === undefined) {
-          if (!ranges[j]) ranges[j] = [];
-          ranges[j].push(arr[i]);
-          isPushed = true;
-          anyWords = true;
-        }
-      }
-    }
-    if (!isPushed) {
-      if (!ranges[letters.length]) ranges[letters.length] = [];
-      ranges[letters.length].push(arr[i]);
-    }
-  }
-  for (let i = 0; i < ranges.length; i++) {
-    if (!ranges[i]) {
-      ranges[i] = [];
-    }
-  }
-  return ranges;
-}
-
-async function stepReduce(outputDir) {
+async function stepMap2(outputDir) {
   console.log(`Step reduce`);
   const segmentFilePath = path.join(outputDir, 'segment.txt');
   const totalSize = getFilesizeInBytes(segmentFilePath);
 
   return new Promise((resolve) => {
     console.log(`>> reading ${segmentFilePath}`);
-    const stream = fs.createReadStream(segmentFilePath, { encoding: 'utf8', highWaterMark: 1024 * 1024 /* * 1024 */ /* 1 GB */ });
+    const stream = fs.createReadStream(
+      segmentFilePath,
+      { encoding: 'utf8', highWaterMark: 1024 * 3 /* * 1024  * 1024 */ /* 1 GB */ },
+    );
     let prev = '';
     let processed = [];
     let chunkId = 0;
@@ -142,7 +118,82 @@ async function stepReduce(outputDir) {
   });
 }
 
+async function stepReduce(outputDir) {
+  const fileNames = fs.readdirSync(outputDir);
+  const numOfFiles = fileNames.length;
+  let streamsData = [];
+  // let counter = 0;
+  let endCounter = 0;
+  // let dataToWrite = '';
+
+  // return new Promise((resolve) => {
+
+  const outFileStream = fs.createWriteStream(
+    path.join(outputDir, 'bigfile.txt'),
+    { flags: 'a' },
+  );
+
+  emitter.on('new-chunk', (data) => {
+    streamsData.push(data);
+    // counter++;
+    // dataToWrite += data;
+    console.log({ endCounter });
+    // console.log(streamsData.length + endCounter)
+    if ((streamsData.length + endCounter) >= numOfFiles) {
+      // console.log(streamsData);
+      outFileStream.write(streamsData.reduce((acc, x) => acc += x));
+      // outFileStream.write(dataToWrite);
+      // dataToWrite = '';
+      // counter = 0;
+      streamsData = [];
+      emitter.emit('resume');
+    }
+  });
+
+  emitter.on('end', () => {
+    endCounter++;
+    if (endCounter >= numOfFiles) {
+      // console.log({ dataToWrite });
+      console.log('Output file stream was successfully closed');
+      outFileStream.write(streamsData.reduce((acc, x) => acc += x));
+      outFileStream.close();
+    }
+  })
+
+  Promise.all(fileNames.map((filename) => {
+    const stream = fs.createReadStream(
+      path.join(outputDir, filename),
+      { encoding: 'utf8', highWaterMark: 1024 /* * 1024 /* * 1024 */ /* 1 GB */ },
+    );
+
+    let prev = '';
+    let processed = [];
+    let chunkId = 0;
+
+    stream.on('readable', () => {
+      let chunk;
+      while (null !== (chunk = stream.read())) {
+        console.log(`>>> new chunk #${filename}-${chunkId}`);
+
+        chunkId++;
+        if (prev.length) {
+          chunk = prev + chunk;
+          prev = '';
+        }
+        stream.pause();
+        emitter.emit('new-chunk', chunk);
+        emitter.on('resume', () => stream.resume());
+      }
+    });
+
+    stream.on('end', () => emitter.emit('end'));
+  }));
+
+  // });
+}
+
 module.exports = {
   stepMap,
+  stepMap2,
   stepReduce,
 }
