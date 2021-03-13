@@ -102,22 +102,24 @@ async function stepReduce(outputDir) {
 
   return new Promise((resolve) => {
     console.log(`>> reading ${segmentFilePath}`);
-    const stream = fs.createReadStream(segmentFilePath, { encoding: 'utf8', highWaterMark: 1024 * 1024 * 1024 /* 1 GB */ });
+    const stream = fs.createReadStream(segmentFilePath, { encoding: 'utf8', highWaterMark: 1024 * 1024 /* * 1024 */ /* 1 GB */ });
     let prev = '';
-    const processed = [];
+    let processed = [];
     let chunkId = 0;
     let chunksCumulativeSize = 0;
 
     stream.on('data', (chunk) => {
+      processed = [];
       chunksCumulativeSize += chunk.length;
-      if (!(chunkId % 5)) {
-        console.log(`>>> new chunk (${chunksCumulativeSize}/${totalSize})`);
-      }
+      // if (!(chunkId % 5)) {
+      console.log(`>>> new chunk (${chunksCumulativeSize}/${totalSize})`);
+      // }
       chunkId++;
       if (prev.length) {
         chunk = prev + chunk;
         prev = '';
       }
+      console.log(chunk.length);
 
       const lines = chunk.split('\n');
       for (let i = 0; i < lines.length; i++) {
@@ -130,16 +132,10 @@ async function stepReduce(outputDir) {
 
       // Actual processing
       const wordDocIdMap = buildOccurrencesMap(processed);
-      // console.log('>> Sorting wordDocIdMap');
       const sortedWordDocIdArr = [...wordDocIdMap.entries()].sort();
-      // console.log('>> sorted');
-      const letters = ['а', 'б', 'ж', 'л', 'п', 'ф'];
-      const ranges = splitArrayByLetters(sortedWordDocIdArr, letters);
 
-      for (let i = 0; i < ranges.length; i++) {
-        fs.writeFileSync(path.join(outputDir, `segment-${letters[i]}.txt`),
-          ranges[i].map(pair => `${pair[0]},${[...pair[1].entries()].join(',')}`).join('\n'));
-      }
+      fs.writeFileSync(path.join(outputDir, `${chunkId}.txt`),
+        sortedWordDocIdArr.map(pair => `${pair[0]},${[...pair[1].entries()].join(',')}`).join('\n'));
     });
 
     stream.on('end', () => resolve());
