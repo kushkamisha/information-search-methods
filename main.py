@@ -10,4 +10,5 @@ if __name__ == "__main__":
     compr = Compress(books)
     compr.compress_dict()
     compr.compress_postings()
-    compr.write()
+    # compr.write()
+    print(compr.ptr_to_post)

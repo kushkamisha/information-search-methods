@@ -44,17 +44,19 @@ class Compress:
             k += 1
 
     def compress_postings(self):
-        # for k in range(len(self.words)):
-        #     self.ptr_to_post.append(None)
+        for k in range(len(self.words)):
+            self.ptr_to_post.append(None)
+        # print(len(self.words))
         for k in range(len(self.words)):
             v = self.dictionary[self.words[k]]
+            # print(self.words[k])
             v = Compress.differences(v)
             numb = "1"
             for i in v:
                 g = Compress.gamma(i)
                 numb += g
             dec = int(numb, 2)
-            # print(numb)
+            print(numb)
             # print(dec)
             self.ptr_to_post[k] = dec
             print(Compress.decode_gamma(dec))
