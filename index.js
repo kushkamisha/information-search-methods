@@ -11,6 +11,7 @@ const output = path.join(__dirname, 'out.txt');
 const compression = new Compression(books);
 // compression.compressDict();
 // compression.writeToFile(output);
-// compression.compressPostings();
+compression.compressPostings();
 
-console.log(compression.__gammaEncode(5));
+// console.log(compression.__gammaEncode(2));
+// console.log(compression.__gammaDecode('1011001101'));

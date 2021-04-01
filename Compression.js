@@ -21,32 +21,37 @@ class Compression {
             this.stringDict += `${this.words[i].length}${this.words[i]}`;
             this.blockLen++;
         }
+        fs.writeFileSync(outputPath, this.stringDict);
     }
 
     compressPostings() {
-        this.ptrToPost = new Array(this.words.length).fill();
+        const wstream = fs.createWriteStream('myBinaryFile.txt');
+        // creates random Buffer of 100 bytes
+        // var buffer = crypto.randomBytes(100);
+
+        // wstream.end();
+        // this.ptrToPost = new Array(this.words.length).fill();
         // console.log(this.dictionary.get(this.words[1]));
         for (let i = 0; i < /* this.words.length */ 20; i++) {
             const docIds = this.dictionary.get(this.words[i]);
             // console.log(this.words[i]);
-            // console.log(docIds);
+            console.log({ docIds });
             const distances = this.__distance(docIds);
-            console.log(distances);
+            console.log({ distances });
             let numb = '1';
             distances.map(dist => numb += this.__gammaEncode(dist));
             // for (let j = 0; j < distances.length; j++) {
             //     numb += this.__gammaEncode(distances[j]);
             // }
-            console.log(numb);
+            console.log({ numb });
             const decimalNumb = parseInt(numb, '2');
-            this.ptrToPost[i] = decimalNumb;
-            // console.log(decimalNumb);
+            this.ptrToPost.push(decimalNumb);
+            // console.log({ decimalNumb });
             // console.log(this.__gammaDecode(numb));
         }
-    }
-
-    writeToFile(outputPath) {
-        fs.writeFileSync(outputPath, this.stringDict);
+        wstream.write(Buffer.from(this.ptrToPost));
+        wstream.end();
+        // console.log();
     }
 
     __init() {
@@ -68,15 +73,6 @@ class Compression {
                     } else {
                         this.dictionary.set(word, [docId]);
                     }
-
-                    // if (this.dictionary.has(word)) {
-                    //     if (!this.dictionary.get(word).includes(docId)) {
-                    //         this.dictionary.get(word).push(docId);
-                    //         // this.dictionary.set(word, [...this.dictionary.get(word), docId]);
-                    //     }
-                    // } else {
-                    //     this.dictionary.set(word, [fileId]);
-                    // }
                 }
             }
         }
@@ -92,17 +88,32 @@ class Compression {
         return `${unary}${binary}`;
     }
 
+    /**
+     * 
+     * @param {string} gamma binary number
+     * @returns array of decimals
+     */
     __gammaDecode(gamma) {
-        const numbers = [];
-        while (gamma.length) {
-            let ctr = 0;
-            while (gamma[0] !== '0') {
-                gamma = gamma.slice(1);
-                ctr++;
-            };
-            const binary = `1${gamma.slice(1, ctr + 1)}`;
-            gamma = gamma.slice(ctr + 1);
-            numbers.push(parseInt(binary, '2'));
+        const binary = gamma.slice(1);
+        const numbers = []
+        let ch = 0
+        let ctr = 0
+        let n = '1'
+
+        while (ch < binary.length) {
+            if (binary[ch] === '1') {
+                ctr += 1;
+                ch += 1;
+            } else if (binary[ch] === '0') {
+                for (let i = 0; i < ctr; i++) {
+                    ch++;
+                    n += binary[ch];
+                }
+                numbers.push(parseInt(n, 2));
+                n = '1';
+                ch++;
+                ctr = 0;
+            }
         }
         return numbers;
     }
