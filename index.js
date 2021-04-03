@@ -6,7 +6,7 @@ const dir = 'data';
 const books = fs.readdirSync(dir)
     .filter(x => x.indexOf('.txt') !== -1)
     .map(x => path.join(dir, x));
-const output = path.join(__dirname, 'out.txt');
+// const output = path.join(__dirname, 'out.txt');
 
 const compression = new Compression(books);
 // compression.compressDict();
