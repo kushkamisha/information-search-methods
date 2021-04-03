@@ -3,14 +3,14 @@ const { read, createInvertedIndex } = require('./utils');
 const filenames = [
   "Мастер и Маргарита.txt",
   "Война и мир. Том 1.txt",
-  // "Война и мир. Том 2.txt",
-  // "Война и мир. Том 3.txt",
-  // "Война и мир. Том 4.txt",
-  // "Волшебник Изумрудного города.txt",
-  // "Братья Карамазовы.txt",
-  // "Идиот.txt",
-  // "Униженные и оскорбленные.txt",
-  // "Бесы.txt",
+  "Война и мир. Том 2.txt",
+  "Война и мир. Том 3.txt",
+  "Война и мир. Том 4.txt",
+  "Волшебник Изумрудного города.txt",
+  "Братья Карамазовы.txt",
+  "Идиот.txt",
+  "Униженные и оскорбленные.txt",
+  "Бесы.txt",
 ];
 
 const main = async () => {
@@ -45,8 +45,6 @@ const main = async () => {
 
     bodies.push(texts[i].slice(j));
   }
-  console.log(titles);
-  console.log(authors);
 
   // Create inverted indexes for each zone
   const titlesDict = [];
@@ -59,17 +57,16 @@ const main = async () => {
     bodiesDict.push(createInvertedIndex(bodies[i], i));
   }
 
-  // console.log();
-
   // Implement weighted zone search
   const weights = {
     title: 0.3,
     author: 0.2,
     body: 0.5,
   };
-  const rawQuery = 'мир война';
+  // const rawQuery = 'мир война';
+  // const rawQuery = 'подавно она';
+  const rawQuery = 'если б только';
   const query = rawQuery.split(' ').map(x => x.toLowerCase());
-  console.log(query)
   const scores = [];
 
   for (let i = 0; i < titles.length; i++) {
@@ -96,6 +93,7 @@ const main = async () => {
     })
     scores.push(titleScore + authorScore + bodyScore);
   }
+  console.log({ scores });
 
   // Post processing scores
   const rank = [];
@@ -104,9 +102,6 @@ const main = async () => {
   }
   rank.sort((a, b) => b.score - a.score);
   console.log(rank);
-
-  // // console.log(dict.size);
-  // console.log([...dict.get('императрице').values()].map(x => filenames[x]));
 
   // console.log(`Working time: ${Date.now() - start} ms`);
 }
