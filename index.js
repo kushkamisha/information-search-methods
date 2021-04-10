@@ -1,109 +1,59 @@
-const { read, createInvertedIndex } = require('./utils');
+// Практичне зайняття 3. Двословний індекс і координатний інвертований індекс
+// + 1. Побудувати двословний індекс
+// + 2. і координатний інвертований індекс по колекції документів.
+// + 3. Реалізувати фразовий пошук
+// + 4. та пошук з урахуванням відстані для кожного з них.
+const { createTf } = require('./indexes');
+const { read } = require('./utils');
 
 const filenames = [
-  "Мастер и Маргарита.txt",
-  "Война и мир. Том 1.txt",
-  "Война и мир. Том 2.txt",
-  "Война и мир. Том 3.txt",
-  "Война и мир. Том 4.txt",
-  "Волшебник Изумрудного города.txt",
-  "Братья Карамазовы.txt",
-  "Идиот.txt",
-  "Униженные и оскорбленные.txt",
-  "Бесы.txt",
+    "Война и мир. Том 1.txt",
+    "Война и мир. Том 2.txt",
+    "Война и мир. Том 3.txt",
+    "Война и мир. Том 4.txt",
+    "Мастер и Маргарита.txt",
+    "Волшебник Изумрудного города.txt",
+    "Братья Карамазовы.txt",
+    "Идиот.txt",
+    "Униженные и оскорбленные.txt",
+    "Бесы.txt",
 ];
 
+function getWordOccurences(query, tf, filenames) {
+    const words = query.split(' ');
+    const docs = [];
+    for (let i = 0; i < words.length; i++) {
+        docs.push(tf.get(words[i]));
+    }
+
+    return docs;
+
+    // const resDocs = [];
+    // for (const [doc, occursWord1] of word1Docs) {
+    //     if (word2Docs.get(doc)) {
+    //         const occursWord2 = word2Docs.get(doc);
+    //         for (let i = 0; i < occursWord1.length; i++) {
+    //             for (let j = 0; j < occursWord2.length; j++) {
+    //                 if (occursWord1[i] === occursWord2[j] - distance) {
+    //                     resDocs.push(doc);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // return [...new Set(resDocs)].map(x => filenames[x]);
+}
+
 const main = async () => {
-  const texts = await Promise.all(filenames.map(filename => read(filename)));
+    const start = Date.now();
+    const data = await Promise.all(filenames.map(filename => read(filename)));
 
-  // Get titles, authors, bodies
-  const titles = [];
-  const authors = [];
-  const bodies = [];
+    const tf = createTf(data);
+    const query = 'величество король он';
+    console.log(getWordOccurences(query, tf, filenames));
+    // console.log(tf);
 
-  for (let i = 0; i < texts.length; i++) {
-    const titleInd = texts[i].indexOf('title: ');
-    const titleOffset = 7;
-    let tmp = '';
-    let j = titleInd + titleOffset;
-
-    while (texts[i][j] !== '\n' && texts[i][j] !== '\r') {
-      tmp += texts[i][j];
-      j++;
-    }
-    titles.push(tmp);
-
-    const authorInd = texts[i].indexOf('author: ');
-    const authorOffset = 8;
-    tmp = '';
-    j = authorInd + authorOffset;
-    while (texts[i][j] !== '\n' && texts[i][j] !== '\r') {
-      tmp += texts[i][j];
-      j++;
-    }
-    authors.push(tmp);
-
-    bodies.push(texts[i].slice(j));
-  }
-
-  // Create inverted indexes for each zone
-  const titlesDict = [];
-  const authorsDict = [];
-  const bodiesDict = [];
-
-  for (let i = 0; i < titles.length; i++) {
-    titlesDict.push(createInvertedIndex(titles[i], i));
-    authorsDict.push(createInvertedIndex(authors[i], i));
-    bodiesDict.push(createInvertedIndex(bodies[i], i));
-  }
-
-  // Implement weighted zone search
-  const weights = {
-    title: 0.3,
-    author: 0.2,
-    body: 0.5,
-  };
-  // const rawQuery = 'мир война';
-  // const rawQuery = 'подавно она';
-  const rawQuery = 'если б только';
-  const query = rawQuery.split(' ').map(x => x.toLowerCase());
-  const scores = [];
-
-  for (let i = 0; i < titles.length; i++) {
-    let isInTitles = true;
-    let isInAuthors = true;
-    let isInBodies = true;
-
-    for (let j = 0; j < query.length; j++) {
-      if (isInTitles)
-        isInTitles = isInTitles && [...titlesDict[i].get(query[j]) || []].includes(i);
-      if (isInAuthors)
-        isInAuthors = isInAuthors && [...authorsDict[i].get(query[j]) || []].includes(i);
-      if (isInBodies)
-        isInBodies = isInBodies && [...bodiesDict[i].get(query[j]) || []].includes(i);
-    }
-
-    const titleScore = isInTitles ? weights.title : 0;
-    const authorScore = isInAuthors ? weights.author : 0;
-    const bodyScore = isInBodies ? weights.body : 0;
-    console.log({
-      titleScore,
-      authorScore,
-      bodyScore,
-    })
-    scores.push(titleScore + authorScore + bodyScore);
-  }
-  console.log({ scores });
-
-  // Post processing scores
-  const rank = [];
-  for (let i = 0; i < filenames.length; i++) {
-    rank.push({ file: filenames[i], score: scores[i] });
-  }
-  rank.sort((a, b) => b.score - a.score);
-  console.log(rank);
-
-  // console.log(`Working time: ${Date.now() - start} ms`);
+    console.log(`Working time is ${Date.now() - start} ms`);
 }
 
 main();
