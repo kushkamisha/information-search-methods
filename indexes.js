@@ -13,27 +13,31 @@ function splitIntoWords(data) {
   return processed;
 }
 
-function createTf(data) {
-  const posMap = new Map();
+function createIdf(data) {
+  const tf = new Map();
+  const N = data.length; // number of documents
+  const idf = new Map();
 
   for (let i = 0; i < data.length; i++) {
     const words = splitIntoWords(data[i]);
     for (let j = 0; j < words.length; j++) {
-      if (!posMap.has(words[j])) {
-        posMap.set(words[j], new Map()); // add new word
-      }
-      if (!posMap.get(words[j]).has(i)) {
-        posMap.get(words[j]).set(i, 1); // add document number, word occurence = 1
+      if (!tf.has(words[j])) {
+        tf.set(words[j], new Set([i])); // add new word along with docIs
       } else {
-        const prev = posMap.get(words[j]).get(i);
-        posMap.get(words[j]).set(i, prev + 1); // increment word occurence
+        tf.get(words[j]).add(i);
       }
     }
   }
 
-  return posMap;
+  for (let word of tf.keys()) {
+    const df = tf.get(word).size // num of docs in the collection that has the word
+    idf.set(word, Math.log(N / df));
+  }
+
+  return idf;
 }
 
+
 module.exports = {
-  createTf,
+  createIdf,
 }

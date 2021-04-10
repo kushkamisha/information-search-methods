@@ -3,7 +3,7 @@
 // + 2. і координатний інвертований індекс по колекції документів.
 // + 3. Реалізувати фразовий пошук
 // + 4. та пошук з урахуванням відстані для кожного з них.
-const { createTf } = require('./indexes');
+const { createIdf } = require('./indexes');
 const { read } = require('./utils');
 
 const filenames = [
@@ -48,9 +48,10 @@ const main = async () => {
     const start = Date.now();
     const data = await Promise.all(filenames.map(filename => read(filename)));
 
-    const tf = createTf(data);
+    const idf = createIdf(data);
+    // console.log(idf);
     const query = 'величество король он';
-    console.log(getWordOccurences(query, tf, filenames));
+    console.log(getWordOccurences(query, idf, filenames));
     // console.log(tf);
 
     console.log(`Working time is ${Date.now() - start} ms`);
