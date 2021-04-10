@@ -19,38 +19,48 @@ const filenames = [
     "Бесы.txt",
 ];
 
-function getWordOccurences(query, tf, idf, tolerance, filenames) {
+function getChampionList(query, tf, idf, tolerance, r, filenames) {
     const words = query.split(' ');
     const docs = [];
 
+    // Remove "stop" words from query
     for (let i = 0; i < words.length; i++) {
         if (!isStopWord(words[i], idf, tolerance))
             docs.push(tf.get(words[i]));
     }
+    console.log({ docs });
 
-    return docs;
+    const resultTf = new Map();
 
-    // const resDocs = [];
-    // for (const [doc, occursWord1] of word1Docs) {
-    //     if (word2Docs.get(doc)) {
-    //         const occursWord2 = word2Docs.get(doc);
-    //         for (let i = 0; i < occursWord1.length; i++) {
-    //             for (let j = 0; j < occursWord2.length; j++) {
-    //                 if (occursWord1[i] === occursWord2[j] - distance) {
-    //                     resDocs.push(doc);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // return [...new Set(resDocs)].map(x => filenames[x]);
+    // Merge maps (docId => numOfOccurences) of all words
+    for (let i = 0; i < docs.length; i++) {
+        for (const docId of docs[i].keys()) {
+            const resOccurs = resultTf.get(docId);
+            const currOccurs = docs[i].get(docId);
+            if (resOccurs) {
+                resultTf.set(docId, resOccurs + currOccurs);
+            } else {
+                resultTf.set(docId, currOccurs);
+            }
+        }
+    }
+    console.log({ resultTf });
+
+    // Sort & limit result to r
+    const sortedDocsWithLimit = [...resultTf.entries()].sort((a, b) => b[1] - a[1]).slice(0, r);
+
+    // Get filenames
+    const namedDocs = sortedDocsWithLimit.map(([docId]) => filenames[docId]);
+
+    return namedDocs;
 }
 
 const isStopWord = (word, idf, tolerance) => !!(idf.get(word) < tolerance);
 
 const main = async () => {
     const start = Date.now();
-    const filter = 0.7;
+    const filter = 0.7; // remove words that occur in more than (filter * 100) % of docs
+    const r = 3; // champion list limit
     const tolerance = Math.log(filenames.length / (filenames.length * filter));
     const data = await Promise.all(filenames.map(filename => read(filename)));
 
@@ -67,8 +77,8 @@ const main = async () => {
     console.log(`Tf size after removing "stop" words: ${tf.size}`);
 
     // Process a query
-    const query = 'принцесса величество король он';
-    console.log(getWordOccurences(query, tf, idf, tolerance, filenames));
+    const query = 'волшебник величество король он';
+    console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
 
     console.log(`Working time is ${Date.now() - start} ms`);
 }
