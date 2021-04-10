@@ -25,7 +25,7 @@ function getChampionList(query, tf, idf, tolerance, r, filenames) {
 
     // Remove "stop" words from query
     for (let i = 0; i < words.length; i++) {
-        if (!isStopWord(words[i], idf, tolerance))
+        if (!isStopWord(words[i], idf, tolerance) && tf.get(words[i]))
             docs.push(tf.get(words[i]));
     }
     console.log({ docs });
@@ -78,6 +78,7 @@ const main = async () => {
 
     // Process a query
     const query = 'волшебник величество король он';
+    // const query = 'аделаида ивановна';
     console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
 
     console.log(`Working time is ${Date.now() - start} ms`);
