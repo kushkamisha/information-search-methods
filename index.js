@@ -3,7 +3,7 @@
 // + 2. і координатний інвертований індекс по колекції документів.
 // + 3. Реалізувати фразовий пошук
 // + 4. та пошук з урахуванням відстані для кожного з них.
-const { createIdf } = require('./indexes');
+const { createTf, createIdf } = require('./indexes');
 const { read } = require('./utils');
 
 const filenames = [
@@ -19,11 +19,13 @@ const filenames = [
     "Бесы.txt",
 ];
 
-function getWordOccurences(query, tf, filenames) {
+function getWordOccurences(query, tf, idf, tolerance, filenames) {
     const words = query.split(' ');
     const docs = [];
+
     for (let i = 0; i < words.length; i++) {
-        docs.push(tf.get(words[i]));
+        if (!isStopWord(words[i], idf, tolerance))
+            docs.push(tf.get(words[i]));
     }
 
     return docs;
@@ -44,15 +46,29 @@ function getWordOccurences(query, tf, filenames) {
     // return [...new Set(resDocs)].map(x => filenames[x]);
 }
 
+const isStopWord = (word, idf, tolerance) => !!(idf.get(word) < tolerance);
+
 const main = async () => {
     const start = Date.now();
+    const filter = 0.7;
+    const tolerance = Math.log(filenames.length / (filenames.length * filter));
     const data = await Promise.all(filenames.map(filename => read(filename)));
 
-    const idf = createIdf(data);
-    // console.log(idf);
-    const query = 'величество король он';
-    console.log(getWordOccurences(query, idf, filenames));
-    // console.log(tf);
+    // Build Tf & Idf
+    const tf = createTf(data);
+    const idf = createIdf(tf, data.length);
+    console.log(`Initial Tf size: ${tf.size}`);
+
+    // Remove "stop" words from the tf map
+    for (const word of idf.keys()) {
+        if (isStopWord(word, idf, tolerance)) tf.delete(word)
+    }
+
+    console.log(`Tf size after removing "stop" words: ${tf.size}`);
+
+    // Process a query
+    const query = 'принцесса величество король он';
+    console.log(getWordOccurences(query, tf, idf, tolerance, filenames));
 
     console.log(`Working time is ${Date.now() - start} ms`);
 }
