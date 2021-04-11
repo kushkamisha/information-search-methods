@@ -7,7 +7,7 @@ async function search() {
         index: 'quotes',
         body: {
             query: {
-                match: { quote: 'pivot' }
+                match: { quote: 'love him' }
             }
         }
     })
