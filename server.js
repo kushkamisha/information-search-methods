@@ -6,7 +6,7 @@ const port = 3000
 
 app.use(express.static('public'))
 
-app.post('/search', async (req, res) => {
+app.get('/search', async (req, res) => {
     const { text } = req.query
     const { body } = await client.search({
         index: 'quotes',

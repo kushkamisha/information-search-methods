@@ -1,101 +1,98 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang='en' class=''>
+  <head>
+    <meta charset='UTF-8'>
+    <title>Search Bar Demo</title>
+    <style>
+        body {
+        background-color: #3745c2;
+        margin: 200px 40%;
+      }
 
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      form {
+        background-color: #4654e1;
+        width: 300px;
+        height: 44px;
+        border-radius: 5px;
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+      }
 
-    <!-- Bootstrap CSS -->
-    <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+      input {
+        all: unset;
+        font: 16px system-ui;
+        color: #fff;
+        height: 100%;
+        width: 100%;
+        padding: 6px 10px;
+      }
 
-    <title>DEX+</title>
-</head>
+      ::placeholder {
+        color: #fff;
+        opacity: 0.7; 
+      }
 
-<body class="container">
-    <center>
-        <h1 class="mb-5 mt-5 h1">Dex+</h1>
-    </center>
+      svg {
+        color: #fff;
+        fill: currentColor;
+        width: 24px;
+        height: 24px;
+        padding: 10px;
+      }
 
-    <h3 class="h3">Your Info</h3>
-    <table class="table">
-        <tbody>
-            <tr>
-                <td>Address</td>
-                <td id="address"></td>
-            </tr>
-            <tr>
-                <td>ETH Balance</td>
-                <td id="eth-balance"></td>
-            </tr>
-            <tr>
-                <td>ERC20 Balance</td>
-                <td><span id="erc20-balance"></span><span id="erc20-symbol"></span></td>
-            </tr>
-            <tr>
-                <td>ERC721 Balance</td>
-                <td id="erc721-balance"></td>
-            </tr>
-        </tbody>
-    </table>
+      button {
+        all: unset;
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+      }
+    </style>
+  </head>
+  <body>
+    <form role="search" id="form">
+      <input type="search" id="query" name="q" placeholder="Search..." aria-label="Search through site content">
+      <button>
+        <svg viewBox="0 0 1024 1024"><path class="path1" d="M848.471 928l-263.059-263.059c-48.941 36.706-110.118 55.059-177.412 55.059-171.294 0-312-140.706-312-312s140.706-312 312-312c171.294 0 312 140.706 312 312 0 67.294-24.471 128.471-55.059 177.412l263.059 263.059-79.529 79.529zM189.623 408.078c0 121.364 97.091 218.455 218.455 218.455s218.455-97.091 218.455-218.455c0-121.364-103.159-218.455-218.455-218.455-121.364 0-218.455 97.091-218.455 218.455z"></path></svg>
+      </button>
+    </form>
 
-    <h3 class="h3 mt-4">Orders</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Currency</th>
-                <th scope="col">Token</th>
-                <th scope="col">Owner</th>
-                <th scope="col">Price</th>
-                <th scope="col">Expire time</th>
-                <th scope="col">Fill</th>
-            </tr>
-        </thead>
-        <tbody id="ordersTable">
-        </tbody>
-    </table>
+    <br>
+    <div id="results"></div>
 
-    <div id="accordion" class="mt-4">
-        <div class="card">
-            <div class="card-header" id="headingOne">
-                <h5 class="mb-0">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
-                        aria-controls="collapseOne">
-                        Place an order
-                    </button>
-                </h5>
-            </div>
-    
-            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-                <div class="card-body">
-                    <!-- <div class="container"> -->
-                        <form>
-                            <div class="form-group">
-                                <label for="price">Price</label>
-                                <input type="number" class="form-control" id="erc721-price" placeholder="Enter your price (ETH)">
-                            </div>
-                            <div class="form-group">
-                                <label for="erc721-name">Token Name</label>
-                                <input type="text" class="form-control" id="erc721-name" placeholder="Enter the name of your kitty">
-                            </div>
-                            <div class="form-group">
-                                <label for="expire">Expiration Date & Time</label>
-                                <input type="date" value="2020-01-01" class="form-control" id="erc721-expireDate" placeholder="Expiration date">
-                                <input type="time" value="13:30" class="form-control" id="erc721-expireTime" placeholder="Expiration time">
-                            </div>
-                            
-                            <button type="button" id="place-order" class="btn mt-5 btn-primary btn-block">Create an order</button>
-                        </form>
-                    <!-- </div> -->
-                </div>
-            </div>
-        </div>
-    </div>
+    <script>
+      const f = document.getElementById('form');
+      const q = document.getElementById('query');
+      const res = document.getElementById('results');
 
-    <script src="./bootstrap/js/jquery.min.js"></script>
-    <script src="./bootstrap/js/bootstrap.min.js"></script>
-    <script src="./js-out/metamask.js"></script>
-</body>
+      function submitted(event) {
+        event.preventDefault();
 
+        const xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+
+            if (this.status == 200) {
+                const quotes = JSON.parse(this.responseText).map((quote) => ({
+                    author: quote._source.author,
+                    quote: quote._source.quote,
+                }));
+                let quotesHtml = '';
+
+                quotes.forEach((quote) => {
+                    quotesHtml += '<b>' + quote.author + '</b><br>' + quote.quote + '<br><br>'
+                })
+
+                res.innerHTML = JSON.stringify(quotesHtml);
+            }
+        };
+
+        xhr.open('GET', `/search?text=${q.value}`, true);
+        xhr.send();
+      }
+
+      f.addEventListener('submit', submitted);
+    </script>
+  </body>
 </html>
