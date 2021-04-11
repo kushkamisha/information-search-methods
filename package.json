@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kushkamisha/information-search-methods#readme",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.12.0"
   },
   "devDependencies": {},
   "description": ""
