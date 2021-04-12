@@ -45,7 +45,7 @@ async function index() {
     console.log('Successfully created a new index')
 }
 
-// index()
+index()
 
 module.exports = {
     index,
