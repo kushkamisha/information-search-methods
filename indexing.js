@@ -4,7 +4,7 @@ const util = require('util')
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({ node: 'http://localhost:9200' })
 
-async function run() {
+async function index() {
     // Delet old index if there is any
     try {
         await client.indices.delete({
@@ -19,6 +19,8 @@ async function run() {
     const dataFile = path.join(__dirname, 'data', 'quotes.json')
     const data = JSON.parse(fs.readFileSync(dataFile, 'utf-8'))
 
+    console.log('Read a file')
+
     const toIndex = []
 
     data.forEach((quote) => {
@@ -26,10 +28,14 @@ async function run() {
         toIndex.push(quote)
     })
 
+    console.log('before creating an index')
+
     const { body: bulkResponse } = await client.bulk({
         refresh: true,
         body: toIndex,
     })
+
+    console.log('after creating an index')
 
     if (bulkResponse.errors) {
         console.log(util.inspect(bulkResponse, true, null, true))
@@ -39,4 +45,8 @@ async function run() {
     console.log('Successfully created a new index')
 }
 
-run()
+// index()
+
+module.exports = {
+    index,
+}

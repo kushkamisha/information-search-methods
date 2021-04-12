@@ -86,7 +86,7 @@
         height: 44px;
       }
       #results {
-        margin: 0 30%;
+        margin: 6% 30%;
         align-items:center;
       }
     </style>
@@ -101,8 +101,8 @@
 
     <h3>Add a quote</h3>
     <form id="add" name="Add a quote">
-        <input type="text" name="author" placeholder="Author"><br>
-        <input type="text" name="quote" placeholder="Quote"><br>
+        <input type="text" id="author" name="author" placeholder="Author"><br>
+        <input type="text" id="quote" name="quote" placeholder="Quote"><br>
         <button>Submit</button>
     </form>
 
@@ -113,6 +113,10 @@
       const f = document.getElementById('form');
       const q = document.getElementById('query');
       const res = document.getElementById('results');
+
+      const addQ = document.getElementById('add');
+      const author = document.getElementById('author');
+      const quote = document.getElementById('quote');
 
       function submitted(event) {
         event.preventDefault();
@@ -141,7 +145,28 @@
         xhr.send();
       }
 
+      function submittedAdd(event) {
+        event.preventDefault();
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/add', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            author: author.value,
+            quote: quote.value,
+        }));
+
+        xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+
+            if (this.status == 200) {
+                alert('Added')
+            }
+        };
+      }
+
       f.addEventListener('submit', submitted);
+      addQ.addEventListener('submit', submittedAdd);
     </script>
   </body>
 </html>
