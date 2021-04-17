@@ -42,7 +42,7 @@ class Parser {
 
   // eslint-disable-next-line class-methods-use-this
   getTitleAndBody(part) {
-    const title = part?.title;
+    const title = part?.title?.p;
     const body = part?.p?.reduce((acc, cur) => acc + cur, '');
     return (title && body) ? ({ title, body }) : undefined;
   }

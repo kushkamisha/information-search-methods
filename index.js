@@ -67,12 +67,38 @@ const main = async () => {
   const r = 3; // champion list limit
   const tolerance = Math.log(filenames.length / (filenames.length * filter));
   const data = await Promise.all(filenames.map((filename) => read(filename)));
+  const books = [];
 
-  const text = data[0];
-  const parser = new Parser(text);
-  console.log({ bookTitle: parser.title() });
-  console.log({ bookAuthor: parser.author() });
-  console.log({ book: parser.chapters().map((x) => x.title) });
+  // books: [
+  //   {
+  //     title: string;
+  //     author: stirng;
+  //     chaptersTfs: [{
+  //       title: string;
+  //       tf: Map(word: string => Map(docId => occurences))
+  //     }]
+  //   }
+  // ]
+  for (let i = 0; i < data.length; i++) {
+    const bookText = data[i];
+    const book = new Parser(bookText);
+
+    const title = book.title();
+    const author = book.author();
+    const rawChapters = book.chapters();
+    // console.log({ titles: rawChapters.map((x) => x.title) });
+
+    const chapters = [];
+    for (let j = 0; j < rawChapters.length; j++) {
+      const chapterTitle = rawChapters[j].title;
+      const tf = createTf(rawChapters[j].body, chapterTitle);
+      chapters.push({ title: chapterTitle, tf });
+    }
+
+    books.push({ title, author, chapters });
+  }
+
+  console.log(books[0]);
 
   // console.log(fb2Parser.title());
   // console.log(fb2Parser.author());
