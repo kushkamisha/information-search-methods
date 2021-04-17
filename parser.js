@@ -22,7 +22,31 @@ class Parser {
 
   chapters() {
     const res = [];
-    const parts = this.book.FictionBook.body.section;
+    let { body } = this.book.FictionBook;
+    if (Array.isArray(body)) body = body[0];
+    const parts = body.section;
+    for (let i = 0; i < parts.length; i++) {
+      const chapters = parts[i].section;
+      if (chapters) {
+        for (let j = 0; j < chapters.length; j++) {
+          const chapter = this.getTitleAndBody(chapters[j]);
+
+          if (chapter) res.push(chapter);
+        }
+      } else {
+        const chapter = this.getTitleAndBody(parts[i]);
+        if (chapter) res.push(chapter);
+      }
+    }
+
+    return res;
+  }
+
+  idiot() {
+    const res = [];
+    let { body } = this.book.FictionBook;
+    if (Array.isArray(body)) body = body[0];
+    const parts = body.section;
     for (let i = 0; i < parts.length; i++) {
       const chapters = parts[i].section;
       if (chapters) {
@@ -42,8 +66,12 @@ class Parser {
 
   // eslint-disable-next-line class-methods-use-this
   getTitleAndBody(part) {
+    // console.log({ part })
     const title = part?.title?.p;
-    const body = part?.p?.reduce((acc, cur) => acc + cur, '');
+    // const body = part?.p?.reduce((acc, cur) => acc + cur, '');
+    const body = part?.p?.hasOwnProperty('#text')
+      ? part?.p['#text']
+      : part?.p?.reduce((acc, cur) => acc + cur, '');
     return (title && body) ? ({ title, body }) : undefined;
   }
 }

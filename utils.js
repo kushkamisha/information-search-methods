@@ -13,7 +13,6 @@ const intersection = (...arrs) => {
   for (let i = 0; i < arrs[0].length; i++) {
     let ctr = 0;
     for (let j = 0; j < arrs.length; j++) {
-      // console.log({ arr: arrs[j], elem: arrs[0][i] });
       if (arrs[j].includes(arrs[0][i])) ++ctr;
     }
     if (ctr === arrs.length) res.push(arrs[0][i]);

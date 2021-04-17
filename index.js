@@ -48,10 +48,8 @@ function processQuery(query, books) {
         const goodChapters = [];
         // eslint-disable-next-line no-restricted-syntax
         for (const word of queryWords) {
-          goodChapters.push([...betterBook.chaptersIdx.get(word)]);
+          goodChapters.push([...betterBook.chaptersIdx?.get(word) || []]);
         }
-        console.log(betterBook.chaptersTitles);
-        console.log(goodChapters);
         const commonGoodChapters = intersection(...goodChapters, betterBook.chaptersTitles);
         if (commonGoodChapters.length) {
           bestBooks.push({
@@ -79,11 +77,10 @@ const main = async () => {
     // 'Война и мир. Том 3.txt',
     // 'Война и мир. Том 4.txt',
     // 'Мастер и Маргарита.txt',
-    // 'Волшебник Изумрудного города.fb2',
-    'Волшебник Изумрудного города v2.fb2',
+    'Волшебник Изумрудного города.fb2',
     // 'Волшебник Изумрудного города.txt',
     // 'Братья Карамазовы.txt',
-    // 'Идиот.fb2',
+    'Идиот.fb2',
     // 'Идиот.txt',
     // 'Униженные и оскорбленные.txt',
     // 'Бесы.txt',
@@ -117,10 +114,12 @@ const main = async () => {
   }
 
   const query = {
-    title: 'Волшебник Изумрудного города',
+    // title: 'Волшебник Изумрудного города',
+    // title: 'Идиот',
     chapter: {
-      title: 'Гудвин',
-      body: 'страшила хотел волшебница',
+      // title: 'Гудвин',
+      // body: 'страшила хотел волшебница',
+      body: 'городе хотел',
     },
   };
 
