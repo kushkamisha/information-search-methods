@@ -6,7 +6,7 @@ function splitIntoWords(data) {
 
   const processed = [];
   for (let i = 0; i < words.length; i++) {
-    if (!!words[i]) {
+    if (words[i]) {
       processed.push(words[i].toLowerCase());
     }
   }
@@ -35,25 +35,25 @@ function createTf(data) {
 }
 
 /**
- * 
- * @param {*} tf 
+ *
+ * @param {*} tf
  * @param {*} N - number of documents
- * @returns 
+ * @returns
  */
 function createIdf(tf, N) {
   const idf = new Map();
 
-  for (let word of tf.keys()) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const word of tf.keys()) {
     // tf.get(word).size
-    const df = tf.get(word).size // num of docs in the collection that has the word
+    const df = tf.get(word).size; // num of docs in the collection that has the word
     idf.set(word, Math.log(N / df));
   }
 
   return idf;
 }
 
-
 module.exports = {
   createTf,
   createIdf,
-}
+};
