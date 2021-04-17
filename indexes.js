@@ -13,22 +13,27 @@ function splitIntoWords(data) {
   return processed;
 }
 
-function createTf(data, docId) {
+// data: [{ title: string; body: string; }]
+function createIndex(data) {
   const tf = new Map();
 
-  // for (let i = 0; i < data.length; i++) {
-  const words = splitIntoWords(data);
-  for (let j = 0; j < words.length; j++) {
-    if (!tf.has(words[j])) {
-      tf.set(words[j], new Map()); // add new word
+  for (let i = 0; i < data.length; i++) {
+    const words = splitIntoWords(data[i].body);
+    const { title } = data[i];
+    for (let j = 0; j < words.length; j++) {
+      if (!tf.has(words[j])) {
+        tf.set(words[j], new Set()); // add new word
+      }
+      const titles = tf.get(words[j]);
+      titles.add(title);
+      tf.set(words[j], titles);
+      // if (!tf.get(words[j]).has(title)) {
+      //   tf.get(words[j]).set(title, 1); // add document number, word occurence = 1
+      // } else {
+      //   const prev = tf.get(words[j]).get(title);
+      //   tf.get(words[j]).set(title, prev + 1); // increment word occurence
+      // }
     }
-    if (!tf.get(words[j]).has(docId)) {
-      tf.get(words[j]).set(docId, 1); // add document number, word occurence = 1
-    } else {
-      const prev = tf.get(words[j]).get(docId);
-      tf.get(words[j]).set(docId, prev + 1); // increment word occurence
-    }
-    // }
   }
 
   return tf;
@@ -53,6 +58,6 @@ function createIdf(tf, N) {
 }
 
 module.exports = {
-  createTf,
+  createIndex,
   createIdf,
 };
