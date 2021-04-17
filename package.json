@@ -19,9 +19,13 @@
   "homepage": "https://github.com/kushkamisha/information-search-methods#readme",
   "dependencies": {
     "@elastic/elasticsearch": "^7.12.0",
+    "eslint": "^7.24.0",
+    "eslint-config-airbnb": "^18.2.1",
     "express": "^4.17.1",
     "fastify": "^3.14.2",
-    "nodemon": "^2.0.7"
+    "libxmljs": "^0.19.7",
+    "nodemon": "^2.0.7",
+    "prettier": "^2.2.1"
   },
   "devDependencies": {},
   "description": ""
