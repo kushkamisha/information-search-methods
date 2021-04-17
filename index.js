@@ -3,133 +3,85 @@
 // + 2. і координатний інвертований індекс по колекції документів.
 // + 3. Реалізувати фразовий пошук
 // + 4. та пошук з урахуванням відстані для кожного з них.
-const { Parser } = require('./parser');
-const { createIndex } = require('./indexes');
-const { read, intersection } = require('./utils');
+const { createTf, createIdf } = require('./indexes');
+const { read } = require('./utils');
 
-function processQuery(query, books) {
-  const { title } = query;
-  const { author } = query;
-  const { chapter } = query;
+const filenames = [
+    "Война и мир. Том 1.txt",
+    "Война и мир. Том 2.txt",
+    "Война и мир. Том 3.txt",
+    "Война и мир. Том 4.txt",
+    "Мастер и Маргарита.txt",
+    "Волшебник Изумрудного города.txt",
+    "Братья Карамазовы.txt",
+    "Идиот.txt",
+    "Униженные и оскорбленные.txt",
+    "Бесы.txt",
+];
 
-  // Filter books by book title & book author
-  const goodBooks = books
-    .filter((book) => (title ? book.title.indexOf(title) !== -1 : true))
-    .filter((book) => (author ? book.author.indexOf(author) !== -1 : true));
+function getChampionList(query, tf, idf, tolerance, r, filenames) {
+    const words = query.split(' ');
+    const docs = [];
 
-  if (chapter && (chapter.title || chapter.body)) {
-    let betterBooks = [];
-
-    // Filter books by chapter title
-    if (chapter.title) {
-      for (let i = 0; i < goodBooks.length; i++) {
-        const goodChapters = goodBooks[i].chaptersTitles
-          .filter((t) => t.indexOf(chapter.title) !== -1);
-        if (goodChapters.length) {
-          betterBooks.push({
-            title: goodBooks[i].title,
-            author: goodBooks[i].author,
-            chaptersTitles: goodChapters,
-            chaptersIdx: goodBooks[i].chaptersIdx,
-          });
-        }
-      }
-    } else {
-      betterBooks = goodBooks;
+    // Remove "stop" words from query
+    for (let i = 0; i < words.length; i++) {
+        if (!isStopWord(words[i], idf, tolerance) && tf.get(words[i]))
+            docs.push(tf.get(words[i]));
     }
+    console.log({ docs });
 
-    let bestBooks = [];
-    // Filter books by chapter body
-    if (chapter.body) {
-      const queryWords = chapter.body.split(' ').filter((x) => x);
+    const resultTf = new Map();
 
-      // eslint-disable-next-line no-restricted-syntax
-      for (const betterBook of betterBooks) {
-        const goodChapters = [];
-        // eslint-disable-next-line no-restricted-syntax
-        for (const word of queryWords) {
-          goodChapters.push([...betterBook.chaptersIdx?.get(word) || []]);
+    // Merge maps (docId => numOfOccurences) of all words
+    for (let i = 0; i < docs.length; i++) {
+        for (const docId of docs[i].keys()) {
+            const resOccurs = resultTf.get(docId);
+            const currOccurs = docs[i].get(docId);
+            if (resOccurs) {
+                resultTf.set(docId, resOccurs + currOccurs);
+            } else {
+                resultTf.set(docId, currOccurs);
+            }
         }
-        const commonGoodChapters = intersection(...goodChapters, betterBook.chaptersTitles);
-        if (commonGoodChapters.length) {
-          bestBooks.push({
-            title: betterBook.title,
-            author: betterBook.author,
-            chaptersTitles: commonGoodChapters,
-            chaptersIdx: betterBook.chaptersIdx,
-          });
-        }
-      }
-    } else {
-      bestBooks = betterBooks;
     }
+    console.log({ resultTf });
 
-    return bestBooks;
-  }
-  return goodBooks;
+    // Sort & limit result to r
+    const sortedDocsWithLimit = [...resultTf.entries()].sort((a, b) => b[1] - a[1]).slice(0, r);
+
+    // Get filenames
+    const namedDocs = sortedDocsWithLimit.map(([docId]) => filenames[docId]);
+
+    return namedDocs;
 }
 
+const isStopWord = (word, idf, tolerance) => !!(idf.get(word) < tolerance);
+
 const main = async () => {
-  const filenames = [
-    // 'Война и мир том 1-4.fb2',
-    // 'Война и мир. Том 1.txt',
-    // 'Война и мир. Том 2.txt',
-    // 'Война и мир. Том 3.txt',
-    // 'Война и мир. Том 4.txt',
-    // 'Мастер и Маргарита.txt',
-    'Волшебник Изумрудного города.fb2',
-    // 'Волшебник Изумрудного города.txt',
-    // 'Братья Карамазовы.txt',
-    'Идиот.fb2',
-    // 'Идиот.txt',
-    // 'Униженные и оскорбленные.txt',
-    // 'Бесы.txt',
-  ];
-  const data = await Promise.all(filenames.map((filename) => read(filename)));
-  const books = [];
+    const start = Date.now();
+    const filter = 0.7; // remove words that occur in more than (filter * 100) % of docs
+    const r = 3; // champion list limit
+    const tolerance = Math.log(filenames.length / (filenames.length * filter));
+    const data = await Promise.all(filenames.map(filename => read(filename)));
 
-  // books: [
-  //   {
-  //     title: string;
-  //     author: stirng;
-  //     chapters: [{
-  //       title: string;
-  //       tf: Map(word: string => Map(docId => occurences))
-  //     }]
-  //   }
-  // ]
-  for (let i = 0; i < data.length; i++) {
-    const bookText = data[i];
-    const book = new Parser(bookText);
+    // Build Tf & Idf
+    const tf = createTf(data);
+    const idf = createIdf(tf, data.length);
+    console.log(`Initial Tf size: ${tf.size}`);
 
-    const title = book.title();
-    const author = book.author();
-    const chapters = book.chapters();
-    const chaptersTitles = chapters.map((c) => c.title);
-    const chaptersIdx = createIndex(chapters);
+    // Remove "stop" words from the tf map
+    for (const word of idf.keys()) {
+        if (isStopWord(word, idf, tolerance)) tf.delete(word)
+    }
 
-    books.push({
-      title, author, chaptersTitles, chaptersIdx,
-    });
-  }
+    console.log(`Tf size after removing "stop" words: ${tf.size}`);
 
-  const query = {
-    // title: 'Волшебник Изумрудного города',
-    // title: 'Идиот',
-    chapter: {
-      // title: 'Гудвин',
-      // body: 'страшила хотел волшебница',
-      body: 'городе хотел',
-    },
-  };
+    // Process a query
+    const query = 'волшебник величество король он';
+    // const query = 'аделаида ивановна';
+    console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
 
-  console.log(
-    processQuery(query, books).map((x) => ({
-      title: x.title,
-      author: x.author,
-      chaptersTitles: x.chaptersTitles,
-    })),
-  );
-};
+    console.log(`Working time is ${Date.now() - start} ms`);
+}
 
 main();
