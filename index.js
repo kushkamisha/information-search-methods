@@ -73,8 +73,9 @@ const main = async () => {
   console.log(`Tf size after removing "stop" words: ${tf.size}`);
 
   // Process a query
-  const query = 'волшебник величество король он';
-  // const query = 'аделаида ивановна';
+  // const query = 'его величество волшебник';
+  const query = 'аделаида ивановна';
+  // const query = 'он она они оно';
   console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
 
   console.log(`Working time is ${Date.now() - start} ms`);
