@@ -21,8 +21,6 @@ const intersection = (...arrs) => {
   return res;
 };
 
-// console.log(intersection([3, 2, 4, 8, 1], [1, 5, 3, 2], [5, 3, 2, 8]));
-
 module.exports = {
   read,
   intersection,
