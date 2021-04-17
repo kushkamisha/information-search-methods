@@ -50,7 +50,9 @@ function processQuery(query, books) {
         for (const word of queryWords) {
           goodChapters.push([...betterBook.chaptersIdx.get(word)]);
         }
-        const commonGoodChapters = intersection(...goodChapters);
+        console.log(betterBook.chaptersTitles);
+        console.log(goodChapters);
+        const commonGoodChapters = intersection(...goodChapters, betterBook.chaptersTitles);
         if (commonGoodChapters.length) {
           bestBooks.push({
             title: betterBook.title,
@@ -117,12 +119,18 @@ const main = async () => {
   const query = {
     title: 'Волшебник Изумрудного города',
     chapter: {
-      // title: 'Гудвин',
+      title: 'Гудвин',
       body: 'страшила хотел волшебница',
     },
   };
 
-  console.log({ res: processQuery(query, books)[0].chaptersTitles });
+  console.log(
+    processQuery(query, books).map((x) => ({
+      title: x.title,
+      author: x.author,
+      chaptersTitles: x.chaptersTitles,
+    })),
+  );
 };
 
 main();
