@@ -1,57 +1,62 @@
-const libxmljs = require('libxmljs');
+const parser = require('fast-xml-parser');
 
-class Fb2Parser {
-  constructor(book) {
-    this.book = book;
-    //  = {
-    //             fb: 'http://www.gribuser.ru/xml/fictionbook/2.0'
-    //         };
-  }
-
-  load(document) {
-    this.book = libxmljs.parseXmlString(document);
+class Parser {
+  constructor(text) {
+    this.book = parser.parse(text);
   }
 
   title() {
-    return this.book.get('//fb:book-title').text();
+    return this.book.FictionBook.description['title-info']['book-title'];
   }
 
   author() {
-    return `${this.book.get('//fb:first-name').text()} ${this.book.get('//fb:last-name').text()}`;
+    const {
+      'first-name': fName, 'middle-name': mName, 'last-name': lName,
+    } = this.book.FictionBook.description['title-info'].author;
+    return `${fName} ${mName} ${lName}`;
   }
 
-  date() {
-    return this.book.get('//fb:date').text();
+  body() {
+    return this.book.FictionBook.body;
   }
 
-  content() {
-    const chapters = [];
+  chapters() {
+    // console.log({ x: this.book.FictionBook.body.section[4].title.p }); // часть третья. Исполнение желаний
+    // console.log({ x: this.book.FictionBook.body.section[1].title.p }); // ураган
+    // console.log({ x: this.book.FictionBook.body.section[2].title.p }); // 'Часть первая', 'Дорога из жёлтого кирпича
+    // console.log({ x: this.book.FictionBook.body.section[2].section[0].title }); // 'Часть первая', 'Дорога из жёлтого кирпича -> Элли в удивительной стране жевунов
+    // console.log({ x: this.book.FictionBook.body.section[2].section[0].p.reduce((acc, cur) => acc + cur, '') }); // 'Часть первая', 'Дорога из жёлтого кирпича -> Элли в удивительной стране жевунов
 
-    this.book.find('//fb:body[1]/fb:section').forEach((section) => {
-      const title = section.get('fb:title/fb:p').text();
-      let content = '';
-
-      section.childNodes().forEach((child) => {
-        if (child.name() !== 'title') {
-          content += child.toString();
+    const res = [];
+    const parts = this.book.FictionBook.body.section;
+    for (let i = 2; i < parts.length; i++) {
+      // console.log({ parts: parts[i] });
+      // console.log({ i, part: parts[i] });
+      const chapters = parts[i].section;
+      // eslint-disable-next-line no-continue
+      // if (!chapters) continue;
+      if (chapters) {
+        for (let j = 0; j < chapters.length; j++) {
+          res.push(this.getTitleAndBody(chapters[j]));
         }
-      });
+      } else {
+        // console.log(1);
+        // console.log({ i, part: parts[2].title });
+        res.push(this.getTitleAndBody(parts));
+      }
+    }
 
-      const chapter = {
-        title,
-        content,
-      };
-      chapters.push(chapter);
-    });
-
-    return chapters;
+    return res;
   }
 
-  finalize() {
-    return this.book;
+  // eslint-disable-next-line class-methods-use-this
+  getTitleAndBody(part) {
+    const title = part?.title;
+    const body = part?.p?.reduce((acc, cur) => acc + cur, '');
+    return ({ title, body });
   }
 }
 
 module.exports = {
-  Fb2Parser,
+  Parser,
 };

@@ -3,6 +3,7 @@
 // + 2. і координатний інвертований індекс по колекції документів.
 // + 3. Реалізувати фразовий пошук
 // + 4. та пошук з урахуванням відстані для кожного з них.
+const { Parser } = require('./parser');
 const { createTf, createIdf } = require('./indexes');
 const { read } = require('./utils');
 
@@ -46,16 +47,20 @@ function getChampionList(query, tf, idf, tolerance, r, filenames) {
 
 const main = async () => {
   const filenames = [
-    'Война и мир. Том 1.txt',
-    'Война и мир. Том 2.txt',
-    'Война и мир. Том 3.txt',
-    'Война и мир. Том 4.txt',
-    'Мастер и Маргарита.txt',
-    'Волшебник Изумрудного города.txt',
-    'Братья Карамазовы.txt',
-    'Идиот.txt',
-    'Униженные и оскорбленные.txt',
-    'Бесы.txt',
+    // 'Война и мир том 1-4.fb2',
+    // 'Война и мир. Том 1.txt',
+    // 'Война и мир. Том 2.txt',
+    // 'Война и мир. Том 3.txt',
+    // 'Война и мир. Том 4.txt',
+    // 'Мастер и Маргарита.txt',
+    // 'Волшебник Изумрудного города.fb2',
+    'Волшебник Изумрудного города v2.fb2',
+    // 'Волшебник Изумрудного города.txt',
+    // 'Братья Карамазовы.txt',
+    // 'Идиот.fb2',
+    // 'Идиот.txt',
+    // 'Униженные и оскорбленные.txt',
+    // 'Бесы.txt',
   ];
   const start = Date.now();
   const filter = 0.7; // remove words that occur in more than (filter * 100) % of docs
@@ -63,25 +68,36 @@ const main = async () => {
   const tolerance = Math.log(filenames.length / (filenames.length * filter));
   const data = await Promise.all(filenames.map((filename) => read(filename)));
 
-  // Build Tf & Idf
-  const tf = createTf(data);
-  const idf = createIdf(tf, data.length);
-  console.log(`Initial Tf size: ${tf.size}`);
+  const text = data[0];
+  const parser = new Parser(text);
+  console.log({ bookTitle: parser.title() });
+  console.log({ bookAuthor: parser.author() });
+  console.log({ book: parser.chapters().map((x) => x.title) });
 
-  // Remove "stop" words from the tf map
-  // eslint-disable-next-line no-restricted-syntax
-  for (const word of idf.keys()) {
-    if (isStopWord(word, idf, tolerance)) tf.delete(word);
-  }
+  // console.log(fb2Parser.title());
+  // console.log(fb2Parser.author());
+  // console.log(fb2Parser.date());
+  // console.log(fb2Parser.content());
 
-  console.log(`Tf size after removing "stop" words: ${tf.size}`);
+  // // Build Tf & Idf
+  // const tf = createTf(data);
+  // const idf = createIdf(tf, data.length);
+  // console.log(`Initial Tf size: ${tf.size}`);
 
-  // Process a query
-  const query = 'волшебник величество король он';
-  // const query = 'аделаида ивановна';
-  console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
+  // // Remove "stop" words from the tf map
+  // // eslint-disable-next-line no-restricted-syntax
+  // for (const word of idf.keys()) {
+  //   if (isStopWord(word, idf, tolerance)) tf.delete(word);
+  // }
 
-  console.log(`Working time is ${Date.now() - start} ms`);
+  // console.log(`Tf size after removing "stop" words: ${tf.size}`);
+
+  // // Process a query
+  // const query = 'волшебник величество король он';
+  // // const query = 'аделаида ивановна';
+  // console.log(getChampionList(query, tf, idf, tolerance, r, filenames));
+
+  // console.log(`Working time is ${Date.now() - start} ms`);
 };
 
 main();
